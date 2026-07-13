@@ -139,6 +139,9 @@ const STORAGE_KEY = "chathuraksharam-state-v1";
 const MODE_KEY = "chathuraksharam-mode-v1";
 const SOUND_KEY = "chathuraksharam-sound-v1";
 const AUTO_CHECK_DELAY_MS = 1200;
+// Daily-reminder channel: joining IS the reminder signup; members can
+// leave the channel any time, so no extra confirmation step is needed.
+const WHATSAPP_CHANNEL_URL = "https://chat.whatsapp.com/DjirtohTONLGCqCKv4Khro";
 
 // Tile-flip choreography. Keyboard state, confetti, and the result modal all
 // wait for the final tile to land so the reveal stays suspenseful.
@@ -695,31 +698,8 @@ export default function Home() {
     }
   }
 
-  function addDailyReminder() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(8, 0, 0, 0);
-    const stamp = tomorrow.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    const calendar = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Chathuraksharam//Daily Puzzle//EN",
-      "BEGIN:VEVENT",
-      `DTSTART:${stamp}`,
-      "RRULE:FREQ=DAILY",
-      "SUMMARY:Play today's Chathuraksharam",
-      `DESCRIPTION:A new Malayalam word puzzle is ready. ${window.location.origin}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-    const url = URL.createObjectURL(new Blob([calendar], { type: "text/calendar" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "chathuraksharam-daily-reminder.ics";
-    link.click();
-    URL.revokeObjectURL(url);
-    posthog.capture("daily_reminder_added", { puzzle_id: puzzleId });
-    setMessage("Daily calendar reminder downloaded.");
+  function trackWhatsAppReminder() {
+    posthog.capture("whatsapp_reminder_clicked", { puzzle_id: puzzleId });
   }
 
   return (
@@ -788,13 +768,15 @@ export default function Home() {
                 {copied ? "Copied" : "Share result"}
               </button>
             </div>
-            <button
-              className="btn-outline mt-3 w-full px-5 py-3"
-              onClick={addDailyReminder}
-              type="button"
+            <a
+              className="btn-outline mt-3 block w-full px-5 py-3 text-center"
+              href={WHATSAPP_CHANNEL_URL}
+              onClick={trackWhatsAppReminder}
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              Add daily reminder
-            </button>
+              💬 Remind me on WhatsApp
+            </a>
           </div>
         </div>
       ) : null}

@@ -21,7 +21,7 @@ word bank.
 - **Kerala-night design** — glassmorphism, brass-gold accents, a canvas
   backdrop of drifting aksharams, and pointer-driven parallax
 - **Juice** — WebAudio synth sounds (mutable), haptics, confetti, streaks,
-  share cards, and a daily calendar reminder
+  share cards, and daily reminders via a WhatsApp channel
 - Daily puzzle anchored to the UTC day, so the whole world plays the same
   word; state persists in `localStorage`
 
