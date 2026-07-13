@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import posthog from "posthog-js";
 import Backdrop from "./components/Backdrop";
 import SlotMachine, { MachineEvent } from "./components/SlotMachine";
 import WordDrum, { DrumRow } from "./components/WordDrum";
@@ -538,6 +539,7 @@ export default function Home() {
     setSfxEnabled(next);
     window.localStorage.setItem(SOUND_KEY, next ? "on" : "off");
     if (next) sfx.key();
+    posthog.capture("sound_toggled", { sound_on: next });
   }
 
   function updateMode(nextMode: Mode) {
@@ -548,6 +550,7 @@ export default function Home() {
         ? "Learner mode shows Manglish sounds under each Malayalam aksharam."
         : "Fluent mode keeps the board compact and Malayalam-first.",
     );
+    posthog.capture("mode_changed", { mode: nextMode });
   }
 
   // All five reels locked → the check fires after a short beat; unlocking
@@ -568,6 +571,7 @@ export default function Home() {
     }
 
     if (event === "land") {
+      posthog.capture("lever_pulled", { result: "land", puzzle_id: puzzleId });
       setMessage(
         "The reels spell a real word — lock what you like, or pull again.",
       );
@@ -575,6 +579,7 @@ export default function Home() {
     }
 
     if (event === "freespin") {
+      posthog.capture("lever_pulled", { result: "freespin", puzzle_id: puzzleId });
       setMessage(
         "No dictionary word fits your locked letters — that was a free spin.",
       );
@@ -610,6 +615,12 @@ export default function Home() {
     const finalTry = rowIndex + 1 >= MAX_GUESSES;
     const finished = solved || finalTry;
 
+    posthog.capture("word_guessed", {
+      puzzle_id: puzzleId,
+      guess_number: rowIndex + 1,
+      correct: solved,
+    });
+
     setState((current) => ({
       ...current,
       guesses: [...current.guesses, normalized],
@@ -635,6 +646,11 @@ export default function Home() {
       setRevealing(false);
 
       if (solved) {
+        posthog.capture("puzzle_won", {
+          puzzle_id: puzzleId,
+          guesses_count: rowIndex + 1,
+          streak: state.streak + 1,
+        });
         setWinWaveRow(rowIndex);
         setShowConfetti(true);
         sfx.win();
@@ -644,6 +660,10 @@ export default function Home() {
         );
         later(() => setShowResultModal(true), 1350);
       } else if (finalTry) {
+        posthog.capture("puzzle_lost", {
+          puzzle_id: puzzleId,
+          streak: state.streak,
+        });
         sfx.lose();
         buzz(90);
         setMessage(
@@ -662,9 +682,11 @@ export default function Home() {
     try {
       if (navigator.share) {
         await navigator.share({ text, title: "Chathuraksharam" });
+        posthog.capture("result_shared", { method: "share", puzzle_id: puzzleId });
         setMessage("Result shared.");
       } else {
         await navigator.clipboard.writeText(text);
+        posthog.capture("result_shared", { method: "clipboard", puzzle_id: puzzleId });
         setCopied(true);
         setMessage("Result copied.");
       }
@@ -696,6 +718,7 @@ export default function Home() {
     link.download = "chathuraksharam-daily-reminder.ics";
     link.click();
     URL.revokeObjectURL(url);
+    posthog.capture("daily_reminder_added", { puzzle_id: puzzleId });
     setMessage("Daily calendar reminder downloaded.");
   }
 
