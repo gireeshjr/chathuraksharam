@@ -19,6 +19,7 @@ const balooChettan = Baloo_Chettan_2({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.chathuraksharam.com"),
   title: "Chathuraksharam",
   description:
     "Play a fresh daily Malayalam word-square puzzle with fluent and learner modes.",

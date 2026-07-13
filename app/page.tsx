@@ -141,7 +141,8 @@ const SOUND_KEY = "chathuraksharam-sound-v1";
 const AUTO_CHECK_DELAY_MS = 1200;
 // Daily-reminder channel: joining IS the reminder signup; members can
 // leave the channel any time, so no extra confirmation step is needed.
-const WHATSAPP_CHANNEL_URL = "https://chat.whatsapp.com/DjirtohTONLGCqCKv4Khro";
+const WHATSAPP_CHANNEL_URL =
+  "https://whatsapp.com/channel/0029VbDGDdmAe5VjVZMjtH3o";
 
 // Tile-flip choreography. Keyboard state, confetti, and the result modal all
 // wait for the final tile to land so the reveal stays suspenseful.
