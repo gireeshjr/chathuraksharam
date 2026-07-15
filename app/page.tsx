@@ -9,7 +9,6 @@ import {
   useState,
 } from "react";
 import posthog from "posthog-js";
-import Backdrop from "./components/Backdrop";
 import SlotMachine, { MachineEvent } from "./components/SlotMachine";
 import WordDrum, { DrumRow } from "./components/WordDrum";
 import { buzz, setSfxEnabled, sfx } from "./lib/sfx";
@@ -705,7 +704,6 @@ export default function Home() {
 
   return (
     <main className="game-main">
-      <Backdrop />
       {showConfetti ? (
         <div className="confetti-burst" aria-hidden="true">
           {CONFETTI_PIECES.map((piece, index) => (
@@ -830,9 +828,9 @@ export default function Home() {
                   <p className="intro-eyebrow">Puzzle #{puzzleId + 1}</p>
                   <p className="intro-copy mt-1">
                     Guess the five-aksharam Malayalam word in five tries. Pull
-                    the lever to spin letters, or dial each reel like a
-                    combination lock. Lock the ones you want — lock all five
-                    and the word is checked.
+                    the lever to spin letters, or pick each letter yourself.
+                    Lock the ones you want — lock all five and the word is
+                    checked.
                   </p>
                 </div>
                 {isLearner ? (
@@ -897,13 +895,13 @@ export default function Home() {
               <p className="panel-copy mt-2">
                 Find today&apos;s five-aksharam Malayalam word. The hinted
                 first letter starts locked in for you. Pull the lever and the
-                reels spin, or dial a reel yourself — drag it, or tap the
-                ▲▼ arrows like a suitcase lock. The lever always lands on a
-                real Malayalam word that fits your locked letters when one
-                exists. Tap a letter to lock it; when all five are locked, the
-                word is checked. Green means the aksharam is in the right
-                spot, gold means it is in the word, and dark means it is not
-                used. Guess in five tries.
+                reels spin, or set a reel yourself — tap ⌨️ under it to pick
+                its letter from a keyboard, or drag the reel. The lever
+                always lands on a real Malayalam word that fits your locked
+                letters when one exists. Tap a letter to lock it; when all
+                five are locked, the word is checked. Green means the
+                aksharam is in the right spot, gold means it is in the word,
+                and dark means it is not used. Guess in five tries.
               </p>
             </div>
 

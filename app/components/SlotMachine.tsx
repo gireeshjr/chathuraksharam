@@ -188,6 +188,7 @@ export default function SlotMachine({
   );
   const [dragReel, setDragReel] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState(0);
+  const [pickerReel, setPickerReel] = useState<number | null>(null);
   const [leverPulled, setLeverPulled] = useState(false);
   const [interacted, setInteracted] = useState(false);
   const timeouts = useRef<number[]>([]);
@@ -281,7 +282,10 @@ export default function SlotMachine({
   const [prevDisabled, setPrevDisabled] = useState(disabled);
   if (prevDisabled !== disabled) {
     setPrevDisabled(disabled);
-    if (disabled) setLeverPulled(false);
+    if (disabled) {
+      setLeverPulled(false);
+      setPickerReel(null);
+    }
   }
 
   function pullLever() {
@@ -362,24 +366,44 @@ export default function SlotMachine({
   }
 
   // ------------------------------------------------------------------
-  // Combination-lock dialing: nudge buttons and direct vertical drags.
+  // Direct letter picking (per-reel keyboard) and vertical drags.
   // ------------------------------------------------------------------
 
-  function nudge(index: number, step: number) {
+  function openPicker(index: number) {
     if (disabled || spinning || locked[index] || dragReel !== null) return;
+    sfx.key();
+    setPickerReel(index);
+  }
+
+  function pickLetter(letter: string) {
+    const index = pickerReel;
+    setPickerReel(null);
+    if (index === null || disabled || spinning || locked[index]) return;
+    const target = reelSeq.findIndex((key) => key.ml === letter);
+    if (target < 0) return;
+
     setInteracted(true);
     sfx.tick();
     buzz(6);
-    setReelMotion(index, "snap");
+
+    // Snap along the shortest path so the reel visibly rolls to the pick.
+    const current = Math.round(positions[index]);
+    const base = ((current % seqLength) + seqLength) % seqLength;
+    let delta = target - base;
+    if (delta > seqLength / 2) delta -= seqLength;
+    if (delta < -seqLength / 2) delta += seqLength;
+    if (delta === 0) return;
+
     const next = [...positions];
-    next[index] = positions[index] + step;
+    next[index] = current + delta;
+    setReelMotion(index, "snap");
     setPositions(next);
     later(() => {
       setReelMotion(index, "idle");
-      setPositions((current) => {
-        const settled = [...current];
-        settled[index] = normalize(settled[index]);
-        return settled;
+      setPositions((settled) => {
+        const done = [...settled];
+        done[index] = normalize(done[index]);
+        return done;
       });
       onChange(next.map((p) => letterAt(p).ml), locked, "dial");
     }, 170);
@@ -520,15 +544,6 @@ export default function SlotMachine({
                 key={i}
               >
                 <button
-                  aria-label={`Reel ${i + 1} previous letter`}
-                  className="reel-nudge up"
-                  disabled={disabled || spinning || locked[i]}
-                  onClick={() => nudge(i, -1)}
-                  type="button"
-                >
-                  ▲
-                </button>
-                <button
                   aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${
                     locked[i]
                       ? "Locked — tap to unlock"
@@ -560,13 +575,13 @@ export default function SlotMachine({
                   </span>
                 </button>
                 <button
-                  aria-label={`Reel ${i + 1} next letter`}
-                  className="reel-nudge down"
+                  aria-label={`Pick a letter for reel ${i + 1}`}
+                  className="reel-pick"
                   disabled={disabled || spinning || locked[i]}
-                  onClick={() => nudge(i, 1)}
+                  onClick={() => openPicker(i)}
                   type="button"
                 >
-                  ▼
+                  ⌨️
                 </button>
               </div>
             );
@@ -597,9 +612,55 @@ export default function SlotMachine({
 
       {!interacted && !disabled ? (
         <p className="machine-hint" aria-hidden="true">
-          👉 Pull the lever for luck — or dial each reel like a combination
-          lock
+          👉 Pull the lever for luck — or tap ⌨️ under a reel to pick its
+          letter
         </p>
+      ) : null}
+
+      {pickerReel !== null ? (
+        <div
+          aria-label={`Pick a letter for reel ${pickerReel + 1}`}
+          aria-modal="true"
+          className="picker-overlay"
+          onClick={() => setPickerReel(null)}
+          role="dialog"
+        >
+          <div className="picker-card" onClick={(e) => e.stopPropagation()}>
+            <p className="picker-title">
+              Reel {pickerReel + 1} — pick a letter
+            </p>
+            <div className="picker-grid">
+              {keys.map((key) => {
+                const status = keyboardState.get(key.ml) ?? "empty";
+                const active =
+                  letterAt(positions[pickerReel]).ml === key.ml;
+                return (
+                  <button
+                    aria-label={`${key.ml}, ${key.sound}`}
+                    className={`picker-key status-${status} ${
+                      active ? "active" : ""
+                    }`}
+                    key={key.ml}
+                    onClick={() => pickLetter(key.ml)}
+                    type="button"
+                  >
+                    <span className="picker-symbol">{key.ml}</span>
+                    {learner ? (
+                      <span className="picker-sound">{key.sound}</span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              className="picker-close"
+              onClick={() => setPickerReel(null)}
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

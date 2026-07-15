@@ -49,15 +49,18 @@ not by curling HTML.
   pull. Reels auto-unlock after each reveal.
 - Read a reel's current letter from its aria-label: `Reel N: <letter>, <sound>. …`;
   locked state from `aria-pressed`.
-- Reels are also hand-dialable (luck + effort): `Reel N next letter` /
-  `Reel N previous letter` buttons nudge one step through the strip
-  (REEL_SEQ = allKeys[(i*11)%35]); dragging the `.reel-dial` vertically
-  scrolls it with snap-to-letter. Tap-vs-dial is judged by outcome, not a
+- Reels are also hand-settable (luck + effort): the `.reel-pick` button
+  under each reel (`Pick a letter for reel N`) opens a keyboard overlay
+  (`.picker-overlay`, one `.picker-key` per aksharam with keyboard-state
+  colors) — picking snap-rolls the reel to that letter along the shortest
+  path (REEL_SEQ = allKeys[(i*11)%35]). Dragging the `.reel-dial`
+  vertically still scrolls it with snap-to-letter. Tap-vs-dial is judged by outcome, not a
   pixel slop: a gesture that stays on the same letter and moves less than
   ~45% of an item height toggles the lock (so wobbly touch taps land); a
   drag that reaches another letter dials and must NOT toggle the lock.
-  Locked reels refuse nudges and drags. To assemble a specific word fast in
-  a test, dial each reel to its target letter and lock it — no luck needed.
+  Locked reels refuse picking and drags. To assemble a specific word fast
+  in a test, pick each reel's target letter via the keyboard overlay and
+  lock it — no luck needed.
 - The lever is a pointer gesture (pointerdown grabs with capture, pointerup
   spins; keyboard fires via click detail 0) and has `touch-action: none`,
   so pulling it on mobile must move the lever, never scroll the page.

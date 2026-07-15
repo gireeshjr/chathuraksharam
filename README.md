@@ -12,14 +12,14 @@ word bank.
 
 ## Features
 
-- **Slot-machine input** — a pullable lever with weighted reels, plus
-  suitcase-lock dialing (▲▼ nudges or drag with snap-to-letter)
+- **Slot-machine input** — a pullable lever with weighted reels, plus a
+  per-reel keyboard picker and drag-dialing with snap-to-letter
 - **Dictionary pulls** — the lever always lands on a real Malayalam word
   matching your locked letters when one exists
 - **3D word drum** — one guess per face of a rolling pentagonal barrel,
   with staggered tile-flip reveals
-- **Kerala-night design** — glassmorphism, brass-gold accents, a canvas
-  backdrop of drifting aksharams, and pointer-driven parallax
+- **Kerala-night design** — glassmorphism, brass-gold accents, and
+  pointer-driven parallax
 - **Juice** — WebAudio synth sounds (mutable), haptics, confetti, streaks,
   share cards, and daily reminders via a WhatsApp channel
 - Daily puzzle anchored to the UTC day, so the whole world plays the same
