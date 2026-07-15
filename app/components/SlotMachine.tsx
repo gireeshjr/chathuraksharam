@@ -614,8 +614,20 @@ export default function SlotMachine({
                 : reelMotion === "spin"
                   ? `transform ${820 + i * 240}ms cubic-bezier(0.18, 0.7, 0.3, 1.08)`
                   : "transform 160ms cubic-bezier(0.3, 1.3, 0.5, 1)";
+            const isTarget = pickerReel === i;
             return (
-              <div className="reel-col" key={i}>
+              <div
+                className="reel-col"
+                key={i}
+                style={
+                  // Inline: the editing highlight must survive any CSS
+                  // cascade or stale-stylesheet situation. While the
+                  // picker is open, every other reel dims.
+                  pickerReel !== null && !isTarget
+                    ? { opacity: 0.45 }
+                    : undefined
+                }
+              >
                 <button
                   aria-label={
                     locked[i]
@@ -632,8 +644,18 @@ export default function SlotMachine({
                 </button>
                 <div
                   className={`reel ${locked[i] ? "locked" : ""} ${
-                    pickerReel === i ? "targeted" : ""
+                    isTarget ? "targeted" : ""
                   } ${reelMotion === "spin" ? "spinning" : ""} status-${status}`}
+                  style={
+                    isTarget
+                      ? {
+                          borderColor: "#1fb47d",
+                          boxShadow: "0 0 18px rgba(31, 180, 125, 0.45)",
+                          outline: "2px solid #1fb47d",
+                          outlineOffset: "1.5px",
+                        }
+                      : undefined
+                  }
                 >
                 <button
                   aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${

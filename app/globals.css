@@ -717,6 +717,7 @@ button {
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+  transition: opacity 160ms ease;
 }
 
 .reel-lock-btn {
