@@ -37,5 +37,29 @@ if (token && isProductionBuild && !isLocalHost) {
     ui_host: "https://us.posthog.com",
     defaults: "2026-01-30",
     capture_exceptions: true,
+    // Session replay serialises DOM snapshots in the page and flushes
+    // every ~30s — the same cadence as the mid-game page reloads seen on
+    // phones (renderer memory kills auto-reload there). Recording stays
+    // off until the reloads are confirmed gone; events still flow.
+    disable_session_recording: true,
   });
+
+  // Lifecycle probe: pagehide marks a clean exit, so finding the marker
+  // still "open" on the next load means the previous pageview died
+  // without unloading — a renderer crash or memory kill, not navigation.
+  try {
+    const KEY = "chathuraksharam-lifecycle-v1";
+    const prior = window.localStorage.getItem(KEY);
+    if (prior) {
+      posthog.capture("previous_pageview_ended", {
+        clean_exit: prior === "closed",
+      });
+    }
+    window.localStorage.setItem(KEY, "open");
+    window.addEventListener("pagehide", () => {
+      window.localStorage.setItem(KEY, "closed");
+    });
+  } catch {
+    // localStorage unavailable (private browsing) — skip the probe.
+  }
 }
