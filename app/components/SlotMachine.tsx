@@ -95,6 +95,39 @@ function pickSpinTargets(
   };
 }
 
+// Crisp vector padlock (emoji locks rasterise blurry at button sizes).
+// Stroke follows currentColor, so the button's color states style it.
+function LockIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="lock-icon"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <rect
+        fill="currentColor"
+        fillOpacity="0.16"
+        height="10"
+        rx="2.5"
+        width="16"
+        x="4"
+        y="11"
+      />
+      {open ? (
+        <path d="M8 11V7a4 4 0 0 1 7.8-1.3" />
+      ) : (
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      )}
+      <circle cx="12" cy="16" fill="currentColor" r="1.4" stroke="none" />
+    </svg>
+  );
+}
+
 // The strip letters never change while playing (only the wrapper transform
 // does), but they are by far the most DOM in the app — STRIP_COPIES copies of
 // the alphabet per reel. Memoising them keeps every positions/drag/lock state
@@ -548,7 +581,7 @@ export default function SlotMachine({
                   onClick={() => toggleLock(i)}
                   type="button"
                 >
-                  {locked[i] ? "🔒" : "🔓"}
+                  <LockIcon open={!locked[i]} />
                 </button>
                 <div
                   className={`reel ${locked[i] ? "locked" : ""} ${
