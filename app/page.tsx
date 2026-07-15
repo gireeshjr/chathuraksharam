@@ -388,9 +388,7 @@ export default function Home() {
     answerTiles[0],
     ...Array(WORD_SIZE - 1).fill(""),
   ]);
-  const [message, setMessage] = useState(
-    "First letter's in — tap a reel or pull the lever.",
-  );
+  const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [mode, setMode] = useState<Mode>("learner");
@@ -830,24 +828,6 @@ export default function Home() {
               aria-label="Malayalam word puzzle"
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
-              <div className="puzzle-intro mb-4">
-                <div>
-                  <p className="intro-eyebrow">Puzzle #{puzzleId + 1}</p>
-                  <p className="intro-copy mt-1">
-                    Guess the five-aksharam Malayalam word in five tries. Pull
-                    the lever to spin letters, or pick each letter yourself.
-                    Lock the ones you want — lock all five and the word is
-                    checked.
-                  </p>
-                </div>
-                {isLearner ? (
-                  <p className="sound-note">
-                    Small text under each Malayalam letter shows its Manglish
-                    sound.
-                  </p>
-                ) : null}
-              </div>
-
               <WordDrum
                 activeRow={activeRow}
                 hint={answer.clue}
@@ -889,6 +869,22 @@ export default function Home() {
           </div>
 
           <aside className="space-y-5">
+            <div className="depth-panel p-5">
+              <p className="intro-eyebrow">Puzzle #{puzzleId + 1}</p>
+              <p className="intro-copy mt-2">
+                Guess the five-aksharam Malayalam word in five tries. Pull
+                the lever to spin letters, or pick each letter yourself.
+                Lock the ones you want — lock all five and the word is
+                checked.
+              </p>
+              {isLearner ? (
+                <p className="sound-note">
+                  Small text under each Malayalam letter shows its Manglish
+                  sound.
+                </p>
+              ) : null}
+            </div>
+
             <div className="help-card depth-panel p-5">
               <h2 className="panel-heading">How to play</h2>
               <p className="panel-copy mt-2">

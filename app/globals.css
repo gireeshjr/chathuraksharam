@@ -767,9 +767,11 @@ button {
    caret pointing up at the targeted reel — the board stays visible. */
 .picker-pop {
   background: linear-gradient(165deg, rgba(20, 33, 26, 0.98), rgba(9, 18, 13, 0.98));
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--emerald);
   border-radius: 14px;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 18px rgba(31, 180, 125, 0.25),
+    0 14px 34px rgba(0, 0, 0, 0.45);
   margin-top: 14px;
   padding: 12px;
   position: relative;
@@ -777,8 +779,8 @@ button {
 
 .picker-caret {
   background: #131f18;
-  border-left: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-border);
+  border-left: 1px solid var(--emerald);
+  border-top: 1px solid var(--emerald);
   height: 14px;
   left: 50%;
   margin-left: -7px;
@@ -1071,25 +1073,6 @@ button {
   font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0.16em;
-}
-
-.machine-hint {
-  animation: hint-bob 1.5s ease-in-out infinite;
-  color: var(--gold-bright);
-  font-size: 0.85rem;
-  font-weight: 800;
-  margin-top: 12px;
-  text-align: center;
-  text-shadow: 0 0 18px rgba(224, 170, 75, 0.4);
-}
-
-@keyframes hint-bob {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(5px);
-  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -1497,10 +1480,6 @@ button {
     transform: translateY(calc(100% + 52px));
   }
 
-  .machine-hint {
-    font-size: 0.78rem;
-  }
-
   .stat {
     min-height: 62px;
     padding: 8px 4px;
@@ -1586,8 +1565,7 @@ button {
     transition: none;
   }
 
-  .lever.hinting .lever-knob,
-  .machine-hint {
+  .lever.hinting .lever-knob {
     animation: none;
   }
 

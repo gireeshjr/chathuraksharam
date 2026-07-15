@@ -718,12 +718,6 @@ export default function SlotMachine({
         </button>
       </div>
 
-      {!interacted && !disabled ? (
-        <p className="machine-hint" aria-hidden="true">
-          👉 Pull the lever for luck — or tap a reel to pick its letter
-        </p>
-      ) : null}
-
       {/* Inline callout: pops down under the reels with a caret pointing
           at the targeted reel, so the board stays visible while picking.
           Tapping another reel just slides the caret over. */}
