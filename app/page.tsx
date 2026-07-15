@@ -363,15 +363,19 @@ function getKeyboardState(guesses: string[], answer: string) {
   return states;
 }
 
-function lookupEntries(query: string) {
+// Today's answer is always excluded — the lookup must never spoil it.
+function lookupEntries(query: string, excludeMl: string) {
   const normalized = query.trim().toLowerCase();
-  if (!normalized) return WORDS.slice(0, 5);
+  const candidates = WORDS.filter((word) => word.ml !== excludeMl);
+  if (!normalized) return candidates.slice(0, 5);
 
-  return WORDS.filter((word) =>
-    [word.ml, word.manglish, word.meaning, word.clue].some((field) =>
-      field.toLowerCase().includes(normalized),
-    ),
-  ).slice(0, 5);
+  return candidates
+    .filter((word) =>
+      [word.ml, word.manglish, word.meaning, word.clue].some((field) =>
+        field.toLowerCase().includes(normalized),
+      ),
+    )
+    .slice(0, 5);
 }
 
 export default function Home() {
@@ -415,7 +419,10 @@ export default function Home() {
     () => getKeyboardState(settledGuesses, answer.ml),
     [answer, settledGuesses],
   );
-  const lookupResults = useMemo(() => lookupEntries(lookup), [lookup]);
+  const lookupResults = useMemo(
+    () => lookupEntries(lookup, answer.ml),
+    [answer, lookup],
+  );
   const winRate =
     state.played > 0 ? Math.round((state.wins / state.played) * 100) : 0;
 
@@ -841,15 +848,6 @@ export default function Home() {
                 ) : null}
               </div>
 
-              <div className="hint-card depth-panel">
-                <div>
-                  <h2 className="hint-heading">Today&apos;s hint</h2>
-                  <p className="hint-copy mt-1">
-                    Meaning clue: {answer.clue}
-                  </p>
-                </div>
-              </div>
-
               <WordDrum
                 activeRow={activeRow}
                 mode={mode}
@@ -858,6 +856,15 @@ export default function Home() {
                 soundFor={getSound}
                 winWaveRow={winWaveRow}
               />
+
+              <div className="hint-card depth-panel mt-4">
+                <div>
+                  <h2 className="hint-heading">Today&apos;s hint</h2>
+                  <p className="hint-copy mt-1">
+                    Meaning clue: {answer.clue}
+                  </p>
+                </div>
+              </div>
 
               <p className="status-message mt-4 min-h-7 text-center text-base">
                 {message}
