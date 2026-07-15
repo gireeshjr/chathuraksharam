@@ -389,7 +389,7 @@ export default function Home() {
     ...Array(WORD_SIZE - 1).fill(""),
   ]);
   const [message, setMessage] = useState(
-    "The first letter is locked in for you — tap a reel to pick a letter, or pull the lever.",
+    "First letter's in — tap a reel or pull the lever.",
   );
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -850,21 +850,13 @@ export default function Home() {
 
               <WordDrum
                 activeRow={activeRow}
+                hint={answer.clue}
                 mode={mode}
                 rows={drumRows}
                 shakeRow={shakeRow}
                 soundFor={getSound}
                 winWaveRow={winWaveRow}
               />
-
-              <div className="hint-card depth-panel mt-4">
-                <div>
-                  <h2 className="hint-heading">Today&apos;s hint</h2>
-                  <p className="hint-copy mt-1">
-                    Meaning clue: {answer.clue}
-                  </p>
-                </div>
-              </div>
 
               <p className="status-message mt-4 min-h-7 text-center text-base">
                 {message}

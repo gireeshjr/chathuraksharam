@@ -199,10 +199,6 @@ button {
     will-change: transform;
   }
 
-  .tilt-body > .hint-card {
-    transform: translateZ(22px);
-  }
-
   .tilt-body > .drum-zone {
     transform: translateZ(46px);
   }
@@ -276,23 +272,25 @@ button {
   margin-top: 5px;
 }
 
-.hint-card {
-  margin-bottom: 16px;
-  padding: 16px 18px;
-}
-
-.hint-heading {
-  color: var(--gold);
-  font-size: 0.74rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.hint-copy {
+/* The hint hangs from the drum like a tag, part of the same control. */
+.drum-hint {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--glass-border-dim);
+  border-radius: 0 0 14px 14px;
+  border-top: 0;
   color: var(--ink-dim);
-  font-size: 0.86rem;
-  line-height: 1.55;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 2px auto 0;
+  max-width: 92%;
+  padding: 9px 16px;
+  text-align: center;
+  width: fit-content;
+}
+
+.drum-hint strong {
+  color: var(--gold);
+  font-weight: 800;
 }
 
 /* ------------------------------------------------------------------ */
@@ -854,39 +852,39 @@ button {
   font-weight: 800;
 }
 
-.picker-actions {
-  align-items: center;
-  display: flex;
-  gap: 6px;
-}
-
+/* Spacebar-style lock: a full-width bar under the keys that locks the
+   targeted reel on its current letter. */
 .picker-lock {
   align-items: center;
-  background: rgba(224, 170, 75, 0.16);
+  background: rgba(224, 170, 75, 0.18);
   border: 1px solid var(--glass-border);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--gold-bright);
   cursor: pointer;
   display: flex;
-  font-size: 0.78rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1rem;
   font-weight: 800;
-  gap: 5px;
-  letter-spacing: 0.06em;
+  gap: 8px;
+  justify-content: center;
+  letter-spacing: 0.04em;
   line-height: 1;
-  padding: 6px 10px;
-  text-transform: uppercase;
+  margin-top: 8px;
+  padding: 12px 0;
   transition: background 120ms ease, border-color 120ms ease;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .picker-lock:hover,
 .picker-lock:focus-visible {
-  background: rgba(224, 170, 75, 0.28);
+  background: rgba(224, 170, 75, 0.3);
   border-color: var(--gold);
   outline: none;
 }
 
 .picker-lock .lock-icon {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 .picker-close {
@@ -1402,8 +1400,7 @@ button {
     margin-bottom: 8px;
   }
 
-  .intro-copy,
-  .hint-copy {
+  .intro-copy {
     font-size: 0.76rem;
     line-height: 1.35;
   }
@@ -1413,13 +1410,9 @@ button {
     margin-top: 3px;
   }
 
-  .hint-card {
-    margin-bottom: 10px;
-    padding: 12px;
-  }
-
-  .hint-heading {
-    font-size: 0.68rem;
+  .drum-hint {
+    font-size: 0.76rem;
+    padding: 7px 12px;
   }
 
   .drum-zone {

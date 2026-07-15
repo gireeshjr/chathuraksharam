@@ -715,27 +715,14 @@ export default function SlotMachine({
             <p className="picker-title">
               Reel {pickerReel + 1} — pick a letter
             </p>
-            <div className="picker-actions">
-              <button
-                aria-label={`Lock reel ${pickerReel + 1} on ${
-                  letterAt(positions[pickerReel]).ml
-                }`}
-                className="picker-lock"
-                onClick={() => toggleLock(pickerReel)}
-                type="button"
-              >
-                <LockIcon open={false} />
-                Lock
-              </button>
-              <button
-                aria-label="Close the letter picker"
-                className="picker-close"
-                onClick={() => setPickerReel(null)}
-                type="button"
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              aria-label="Close the letter picker"
+              className="picker-close"
+              onClick={() => setPickerReel(null)}
+              type="button"
+            >
+              ✕
+            </button>
           </div>
           <div className="picker-grid">
             {keys.map((key) => {
@@ -759,6 +746,17 @@ export default function SlotMachine({
               );
             })}
           </div>
+          <button
+            aria-label={`Lock reel ${pickerReel + 1} on ${
+              letterAt(positions[pickerReel]).ml
+            }`}
+            className="picker-lock"
+            onClick={() => toggleLock(pickerReel)}
+            type="button"
+          >
+            <LockIcon open={false} />
+            Lock {letterAt(positions[pickerReel]).ml}
+          </button>
         </div>
       ) : null}
     </div>

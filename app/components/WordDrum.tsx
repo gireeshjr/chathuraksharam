@@ -138,6 +138,7 @@ export default function WordDrum({
   shakeRow,
   mode,
   soundFor,
+  hint,
 }: {
   rows: DrumRow[];
   activeRow: number;
@@ -145,6 +146,8 @@ export default function WordDrum({
   shakeRow: boolean;
   mode: Mode;
   soundFor: (tile: string) => string;
+  /** Meaning clue shown as a tag hanging under the drum. */
+  hint?: string;
 }) {
   const [viewIndex, setViewIndex] = useState(activeRow);
   const [dragging, setDragging] = useState(false);
@@ -264,6 +267,11 @@ export default function WordDrum({
           );
         })}
       </div>
+      {hint ? (
+        <p className="drum-hint">
+          <strong>Today&apos;s hint:</strong> {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

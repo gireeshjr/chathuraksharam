@@ -90,7 +90,8 @@ not by curling HTML.
   assert each landing is a member matching the locks. New dictionary words
   must be real, kid-safe Malayalam — the build throws if one isn't exactly
   5 keyboard aksharams.
-- The hint card shows the meaning clue only (no letter tiles — the first
+- The hint is a `.drum-hint` tag hanging under the drum, inside the
+  drum-zone: "Today's hint: <clue>" (no letter tiles — the first
   letter lives on the pre-locked reel).
 - The board is a pentagonal drum (`.drum-inner`); face i is front when its
   inline transform is `rotateX(<i*72>deg)`. After a non-final reveal it must
