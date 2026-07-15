@@ -18,12 +18,13 @@ type ReelMotion = "idle" | "spin" | "snap";
 export type MachineEvent = "land" | "freespin" | "lock" | "unlock" | "dial";
 
 const REEL_COUNT = 5;
-// Enough runway for the farthest-travelling reel: a spin adds at most 2 full
-// loops plus almost a full alphabet of approach from the middle copies, so
-// the strip must hold at least 6 alphabet copies or it scrolls into blank
+// Enough runway for the farthest-travelling reel: a spin adds one full loop
+// plus almost a full alphabet of approach from the resting copy, so the
+// strip must hold at least 4 alphabet copies or it scrolls into blank
 // space. Keeping the strip short matters: each reel is one big composited
-// layer, and taller strips made spins rasterize megapixels on mobile.
-const STRIP_COPIES = 6;
+// layer, and tall strips pushed mobile Safari into memory-pressure page
+// reloads mid-game.
+const STRIP_COPIES = 4;
 // Deterministic pseudo-shuffle (stride coprime with 35) so the server and
 // client render identical reels; randomness only enters via lever pulls.
 const STRIDE = 11;
@@ -62,7 +63,7 @@ function pickSpinTargets(
   dictionary: ReadonlyArray<ReadonlyArray<string>>,
   lockedPattern: (string | null)[],
   usedWords: ReadonlySet<string>,
-): { targets: number[]; freespin: boolean } {
+): { targets: number[]; freespin: boolean; word: string | null } {
   const seqIndex = new Map(reelSeq.map((key, index) => [key.ml, index]));
   const candidates = dictionary.filter(
     (tiles) =>
@@ -77,6 +78,7 @@ function pickSpinTargets(
     const word = candidates[Math.floor(Math.random() * candidates.length)];
     return {
       freespin: false,
+      word: word.join(""),
       targets: word.map((tile, i) =>
         lockedPattern[i] ? -1 : seqIndex.get(tile)!,
       ),
@@ -85,6 +87,7 @@ function pickSpinTargets(
 
   return {
     freespin: true,
+    word: null,
     targets: lockedPattern.map((lockedTile) =>
       lockedTile ? -1 : pickTargetIndex(reelSeq, keyboardState),
     ),
@@ -162,11 +165,13 @@ export default function SlotMachine({
     [presetLetter, reelSeq],
   );
 
+  // Reels rest inside the second alphabet copy: one copy of runway above
+  // for upward dials, and (STRIP_COPIES - 2) copies below for the spin.
   const initialPositions = () =>
     INITIAL_OFFSETS.map((offset, i) =>
       i === 0 && presetIndex >= 0
-        ? seqLength * 2 + presetIndex
-        : seqLength * 2 + offset,
+        ? seqLength + presetIndex
+        : seqLength + offset,
     );
   const initialLocked = () => {
     const flags = Array(REEL_COUNT).fill(false);
@@ -195,6 +200,9 @@ export default function SlotMachine({
     live: number;
   } | null>(null);
   const lastPointerWasDrag = useRef(false);
+  // Dictionary words the lever has landed on since page load; cleared only
+  // when every word fitting the locks has been shown.
+  const landedWords = useRef<Set<string>>(new Set());
   const rafRef = useRef(0);
   const positionsRef = useRef(positions);
   const spinning = motion.some((m) => m === "spin");
@@ -224,14 +232,14 @@ export default function SlotMachine({
     if (presetIndex >= 0) {
       setPositions((current) => {
         const next = [...current];
-        next[0] = seqLength * 2 + presetIndex;
+        next[0] = seqLength + presetIndex;
         return next;
       });
     }
   }
 
   const normalize = (p: number) =>
-    seqLength * 2 + ((Math.round(p) % seqLength) + seqLength) % seqLength;
+    seqLength + ((Math.round(p) % seqLength) + seqLength) % seqLength;
 
   const letterAt = (position: number) =>
     reelSeq[((Math.round(position) % seqLength) + seqLength) % seqLength];
@@ -293,13 +301,33 @@ export default function SlotMachine({
     const lockedPattern = positions.map((position, i) =>
       locked[i] ? letterAt(position).ml : null,
     );
-    const { targets, freespin } = pickSpinTargets(
+    // Pulls avoid words this session's lever already landed on; a word only
+    // repeats once every other fitting word has been shown.
+    const guessed = new Set(usedWords);
+    let pick = pickSpinTargets(
       reelSeq,
       keyboardState,
       dictionary,
       lockedPattern,
-      new Set(usedWords),
+      new Set([...guessed, ...landedWords.current]),
     );
+    if (pick.freespin) {
+      // Either every fitting word has been landed on (start the cycle
+      // over) or none fits at all (genuine free spin — keep the memory).
+      const retry = pickSpinTargets(
+        reelSeq,
+        keyboardState,
+        dictionary,
+        lockedPattern,
+        guessed,
+      );
+      if (!retry.freespin) {
+        landedWords.current.clear();
+        pick = retry;
+      }
+    }
+    const { targets, freespin } = pick;
+    if (pick.word) landedWords.current.add(pick.word);
 
     const nextPositions = [...positions];
     setMotion(positions.map((_, i) => (locked[i] ? "idle" : "spin")));
@@ -310,9 +338,9 @@ export default function SlotMachine({
       const target = targets[i];
       const base = ((Math.round(position) % seqLength) + seqLength) % seqLength;
       const forward = (target - base + seqLength) % seqLength;
-      // Later reels loop once more and take longer, so they still land in a
-      // stagger; capped at 2 loops so the strip runway stays short.
-      const loops = reducedMotion ? 0 : 1 + Math.min(i, 1);
+      // Every reel loops exactly once; the landing stagger comes from the
+      // duration ramp. More loops would need a longer (heavier) strip.
+      const loops = reducedMotion ? 0 : 1;
       nextPositions[i] = Math.round(position) + loops * seqLength + forward;
 
       const duration = reducedMotion ? 30 : 820 + i * 240;

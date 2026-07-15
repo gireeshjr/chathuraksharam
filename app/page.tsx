@@ -23,7 +23,7 @@ const WORDS = [
   { ml: "കിരണങ്ങൾ", manglish: "kiranangal", meaning: "rays", clue: "Lines of light from the sun." },
   { ml: "മനസ്സുകൾ", manglish: "manassukal", meaning: "minds", clue: "Places where thoughts and feelings live." },
   { ml: "ദിനകരൻ", manglish: "dinakaran", meaning: "sun", clue: "A poetic word for the day-maker." },
-  { ml: "മരങ്ങളിൻ", manglish: "marangalin", meaning: "of trees", clue: "Belonging to trees." },
+  { ml: "മരങ്ങളിൽ", manglish: "marangalil", meaning: "in the trees", clue: "Where birds sit and build their nests." },
   { ml: "വഴികളിൽ", manglish: "vazhikalil", meaning: "on paths", clue: "Where people walk or travel." },
   { ml: "നഗരങ്ങൾ", manglish: "nagarangal", meaning: "cities", clue: "Large busy places where many people live." },
   { ml: "വിരലുകൾ", manglish: "viralukal", meaning: "fingers", clue: "You count, touch, and type with them." },
@@ -79,7 +79,7 @@ const EXTRA_GUESS_WORDS = [
   "പുരങ്ങളിൽ", // in the houses
   "പുരികങ്ങൾ", // eyebrows
   "മലകളിൽ", // on the mountains
-  "മരങ്ങളിൽ", // on the trees
+  "മരങ്ങളിൻ", // of trees (poetic genitive)
   "കിളികളിൽ", // among the birds
 ] as const;
 

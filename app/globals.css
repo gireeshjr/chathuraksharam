@@ -38,6 +38,9 @@
 
 html {
   background: var(--background);
+  /* Downward drags near the top of the page (mis-aimed reel dials, drum
+     rolls) must never trigger the browser's pull-to-refresh mid-game. */
+  overscroll-behavior-y: none;
 }
 
 body {

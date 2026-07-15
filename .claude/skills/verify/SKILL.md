@@ -35,7 +35,9 @@ not by curling HTML.
 - Watch for Next's dev error overlay; if clicks get intercepted, read the
   overlay text first (usually a hydration mismatch).
 - Mobile: 390x844 viewport with touch; input is the slot machine only.
-  Check `document.documentElement.scrollWidth` for overflow.
+  Check `document.documentElement.scrollWidth` for overflow. `html` must
+  keep `overscroll-behavior-y: none` — pull-to-refresh mid-game looked
+  like the page "randomly reloading".
 
 ## 3D gameplay (slot machine + word drum)
 
@@ -61,15 +63,18 @@ not by curling HTML.
   so pulling it on mobile must move the lever, never scroll the page.
 - Blank-reel regression guard: during a full-speed pull, every
   `.reel-window` payline must always overlap a non-empty `.reel-item`
-  (spins loop at most twice — STRIP_COPIES=6 alphabet copies of runway;
-  keep strips short, they are huge composited layers on mobile).
+  (spins loop exactly once — STRIP_COPIES=4 alphabet copies of runway,
+  reels resting in copy 1; keep strips short, tall composited layers
+  caused mobile Safari memory-pressure page reloads).
 - Reel 1 starts ON the answer's first aksharam and pre-locked (the hint
   gives it away anyway); it re-locks at the start of every round, stays
   unlockable, and never spins while locked. Only 4 locks are needed to
   trigger the auto-check. After game over the drum stays on the final
   guessed face (it must not roll to an empty face).
 - Lever pulls land on GUESS_WORDS dictionary entries (answers + extras in
-  page.tsx) that match every locked reel and aren't already guessed; when
+  page.tsx) that match every locked reel and aren't already guessed. Pulls
+  also avoid words the lever already landed on since page load — a word may
+  repeat only after every other fitting word has been shown; when
   no word fits, it falls back to weighted-random letters and the status
   says "free spin". To verify, replicate the dictionary in the test and
   assert each landing is a member matching the locks. New dictionary words
