@@ -51,12 +51,14 @@ not by curling HTML.
   `Reel N: <letter>, <sound>. …`; locked state from `aria-pressed` on the
   `.reel-lock-btn`.
 - Reels are also hand-settable (luck + effort): TAPPING the `.reel-dial`
-  opens a keyboard overlay (`.picker-overlay`, one `.picker-key` per
-  aksharam with keyboard-state colors; portalled to body — do not nest it
-  under the transformed stage or position:fixed breaks) — picking
+  opens an inline keyboard callout below the reel bank (`.picker-pop`,
+  one `.picker-key` per aksharam with keyboard-state colors; its
+  `.picker-caret` points at the targeted reel and slides when another
+  reel is tapped; tapping the same reel again closes it). Picking
   snap-rolls the reel to that letter along the shortest path (REEL_SEQ =
-  allKeys[(i*11)%35]). Dragging the `.reel-dial` vertically still scrolls
-  it with snap-to-letter. Locking is a SEPARATE `.reel-lock-btn` padlock
+  allKeys[(i*11)%35]) and the callout STAYS OPEN for the next reel.
+  Dragging the `.reel-dial` vertically still scrolls it with
+  snap-to-letter. Locking is a SEPARATE `.reel-lock-btn` padlock
   button on top of each reel (aria `Lock reel N on <letter>` / `Unlock
   reel N`, aria-pressed = locked); the dial itself never toggles locks.
   Tap-vs-dial on the dial is judged by outcome, not a pixel slop: a

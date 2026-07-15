@@ -753,34 +753,44 @@ button {
   opacity: 1;
 }
 
-/* Per-reel letter picker */
-.picker-overlay {
-  background: rgba(3, 10, 7, 0.82);
-  display: grid;
-  inset: 0;
-  padding: 20px;
-  place-items: center;
-  position: fixed;
-  z-index: 40;
-}
-
-.picker-card {
+/* Per-reel letter picker: an inline callout below the reel bank with a
+   caret pointing up at the targeted reel — the board stays visible. */
+.picker-pop {
   background: linear-gradient(165deg, rgba(20, 33, 26, 0.98), rgba(9, 18, 13, 0.98));
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-  max-width: 430px;
-  padding: 16px;
-  width: 100%;
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  margin-top: 14px;
+  padding: 12px;
+  position: relative;
+}
+
+.picker-caret {
+  background: #131f18;
+  border-left: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-border);
+  height: 14px;
+  left: 50%;
+  margin-left: -7px;
+  position: absolute;
+  top: -8px;
+  transform: rotate(45deg);
+  transition: left 180ms ease;
+  width: 14px;
+}
+
+.picker-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .picker-title {
   color: var(--gold-bright);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  margin-bottom: 10px;
-  text-align: center;
   text-transform: uppercase;
 }
 
@@ -847,15 +857,14 @@ button {
 .picker-close {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--glass-border-dim);
-  border-radius: 10px;
-  color: var(--ink);
+  border-radius: 8px;
+  color: var(--ink-dim);
   cursor: pointer;
-  display: block;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  margin: 12px auto 0;
-  padding: 8px 22px;
-  transition: border-color 120ms ease;
+  line-height: 1;
+  padding: 6px 9px;
+  transition: border-color 120ms ease, color 120ms ease;
 }
 
 .picker-close:hover,

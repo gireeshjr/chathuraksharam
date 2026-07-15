@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { buzz, sfx } from "../lib/sfx";
 
 type KeyDef = { ml: string; sound: string };
@@ -405,13 +404,42 @@ export default function SlotMachine({
 
   function openPicker(index: number) {
     if (disabled || spinning || locked[index] || dragReel !== null) return;
+    if (pickerReel === index) {
+      // Tapping the targeted reel again folds the callout away.
+      setPickerReel(null);
+      return;
+    }
     sfx.key();
     setPickerReel(index);
   }
 
+  // The callout points an arrow at its reel; keep the caret under the
+  // reel's centre as the target changes or the layout resizes. Direct
+  // style mutation, so retargeting never re-renders the strips.
+  const machineRef = useRef<HTMLDivElement>(null);
+  const caretRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (pickerReel === null) return;
+    const position = () => {
+      const machine = machineRef.current;
+      const caret = caretRef.current;
+      const reel = machine?.querySelectorAll(".reel-col")[pickerReel];
+      if (!machine || !caret || !reel) return;
+      const machineBox = machine.getBoundingClientRect();
+      const reelBox = reel.getBoundingClientRect();
+      caret.style.left = `${
+        reelBox.left + reelBox.width / 2 - machineBox.left
+      }px`;
+    };
+    position();
+    window.addEventListener("resize", position);
+    return () => window.removeEventListener("resize", position);
+  }, [pickerReel]);
+
   function pickLetter(letter: string) {
+    // The callout stays open and keeps pointing at the reel, so the
+    // player can hop reel to reel without reopening it.
     const index = pickerReel;
-    setPickerReel(null);
     if (index === null || disabled || spinning || locked[index]) return;
     const target = reelSeq.findIndex((key) => key.ml === letter);
     if (target < 0) return;
@@ -553,7 +581,12 @@ export default function SlotMachine({
   const allLocked = locked.every(Boolean);
 
   return (
-    <div aria-label="Malayalam letter reels" className="machine" role="group">
+    <div
+      aria-label="Malayalam letter reels"
+      className="machine"
+      ref={machineRef}
+      role="group"
+    >
       <div className="machine-body">
         <div className="reel-bank">
           {positions.map((position, i) => {
@@ -655,56 +688,53 @@ export default function SlotMachine({
         </p>
       ) : null}
 
-      {/* Portalled: the parallax transform on the stage would otherwise
-          turn position:fixed into position:absolute for this overlay. */}
-      {pickerReel !== null
-        ? createPortal(
-            <div
+      {/* Inline callout: pops down under the reels with a caret pointing
+          at the targeted reel, so the board stays visible while picking.
+          Tapping another reel just slides the caret over. */}
+      {pickerReel !== null ? (
+        <div
           aria-label={`Pick a letter for reel ${pickerReel + 1}`}
-          aria-modal="true"
-          className="picker-overlay"
-          onClick={() => setPickerReel(null)}
-          role="dialog"
+          className="picker-pop"
+          role="group"
         >
-          <div className="picker-card" onClick={(e) => e.stopPropagation()}>
+          <span aria-hidden="true" className="picker-caret" ref={caretRef} />
+          <div className="picker-head">
             <p className="picker-title">
               Reel {pickerReel + 1} — pick a letter
             </p>
-            <div className="picker-grid">
-              {keys.map((key) => {
-                const status = keyboardState.get(key.ml) ?? "empty";
-                const active =
-                  letterAt(positions[pickerReel]).ml === key.ml;
-                return (
-                  <button
-                    aria-label={`${key.ml}, ${key.sound}`}
-                    className={`picker-key status-${status} ${
-                      active ? "active" : ""
-                    }`}
-                    key={key.ml}
-                    onClick={() => pickLetter(key.ml)}
-                    type="button"
-                  >
-                    <span className="picker-symbol">{key.ml}</span>
-                    {learner ? (
-                      <span className="picker-sound">{key.sound}</span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
             <button
+              aria-label="Close the letter picker"
               className="picker-close"
               onClick={() => setPickerReel(null)}
               type="button"
             >
-              Close
+              ✕
             </button>
           </div>
-        </div>,
-            document.body,
-          )
-        : null}
+          <div className="picker-grid">
+            {keys.map((key) => {
+              const status = keyboardState.get(key.ml) ?? "empty";
+              const active = letterAt(positions[pickerReel]).ml === key.ml;
+              return (
+                <button
+                  aria-label={`${key.ml}, ${key.sound}`}
+                  className={`picker-key status-${status} ${
+                    active ? "active" : ""
+                  }`}
+                  key={key.ml}
+                  onClick={() => pickLetter(key.ml)}
+                  type="button"
+                >
+                  <span className="picker-symbol">{key.ml}</span>
+                  {learner ? (
+                    <span className="picker-sound">{key.sound}</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
