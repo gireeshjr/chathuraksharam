@@ -389,7 +389,7 @@ export default function Home() {
     ...Array(WORD_SIZE - 1).fill(""),
   ]);
   const [message, setMessage] = useState(
-    "The first letter is locked in for you — dial or spin the rest.",
+    "The first letter is locked in for you — tap a reel to pick a letter, or pull the lever.",
   );
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);

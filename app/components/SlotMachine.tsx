@@ -562,6 +562,14 @@ export default function SlotMachine({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locked, seqLength]);
 
+  function nextUnlocked(from: number, lockedFlags: boolean[]) {
+    for (let step = 1; step <= REEL_COUNT; step += 1) {
+      const i = (from + step) % REEL_COUNT;
+      if (!lockedFlags[i]) return i;
+    }
+    return null;
+  }
+
   function toggleLock(index: number) {
     if (disabled || spinning) return;
 
@@ -574,6 +582,11 @@ export default function SlotMachine({
     } else {
       sfx.unlock();
       buzz(8);
+    }
+    // Locking the callout's target hops it to the next unlocked reel
+    // (closing it when that was the last one — the auto-check takes over).
+    if (next[index] && pickerReel === index) {
+      setPickerReel(nextUnlocked(index, next));
     }
     onChange(currentLetters, next, next[index] ? "lock" : "unlock");
   }
@@ -702,14 +715,27 @@ export default function SlotMachine({
             <p className="picker-title">
               Reel {pickerReel + 1} — pick a letter
             </p>
-            <button
-              aria-label="Close the letter picker"
-              className="picker-close"
-              onClick={() => setPickerReel(null)}
-              type="button"
-            >
-              ✕
-            </button>
+            <div className="picker-actions">
+              <button
+                aria-label={`Lock reel ${pickerReel + 1} on ${
+                  letterAt(positions[pickerReel]).ml
+                }`}
+                className="picker-lock"
+                onClick={() => toggleLock(pickerReel)}
+                type="button"
+              >
+                <LockIcon open={false} />
+                Lock
+              </button>
+              <button
+                aria-label="Close the letter picker"
+                className="picker-close"
+                onClick={() => setPickerReel(null)}
+                type="button"
+              >
+                ✕
+              </button>
+            </div>
           </div>
           <div className="picker-grid">
             {keys.map((key) => {
