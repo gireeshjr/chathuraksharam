@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { buzz, sfx } from "../lib/sfx";
 
 type KeyDef = { ml: string; sound: string };
@@ -500,11 +501,8 @@ export default function SlotMachine({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locked, seqLength]);
 
-  function toggleLock(index: number, fromKeyboard: boolean) {
+  function toggleLock(index: number) {
     if (disabled || spinning) return;
-    // Pointer clicks that were really dials must not toggle; keyboard
-    // activation has no preceding pointerdown, so it always counts.
-    if (!fromKeyboard && lastPointerWasDrag.current) return;
 
     const next = [...locked];
     next[index] = !next[index];
@@ -544,15 +542,34 @@ export default function SlotMachine({
                 key={i}
               >
                 <button
+                  aria-label={
+                    locked[i]
+                      ? `Unlock reel ${i + 1}`
+                      : `Lock reel ${i + 1} on ${key.ml}`
+                  }
+                  aria-pressed={locked[i]}
+                  className="reel-lock-btn"
+                  disabled={disabled || spinning}
+                  onClick={() => toggleLock(i)}
+                  type="button"
+                >
+                  {locked[i] ? "🔒" : "🔓"}
+                </button>
+                <button
                   aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${
                     locked[i]
-                      ? "Locked — tap to unlock"
-                      : "Tap to lock, drag to dial"
+                      ? "Locked — unlock to change"
+                      : "Tap to pick a letter, drag to dial"
                   }`}
-                  aria-pressed={locked[i]}
                   className="reel-dial"
                   disabled={disabled}
-                  onClick={(event) => toggleLock(i, event.detail === 0)}
+                  onClick={(event) => {
+                    // Keyboard activation (detail 0) always opens; pointer
+                    // clicks only when the gesture was a tap, not a dial.
+                    if (event.detail === 0 || !lastPointerWasDrag.current) {
+                      openPicker(i);
+                    }
+                  }}
                   onPointerDown={(event) => onDialPointerDown(event, i)}
                   type="button"
                 >
@@ -570,18 +587,6 @@ export default function SlotMachine({
                     </div>
                     <div aria-hidden="true" className="reel-shade" />
                   </div>
-                  <span aria-hidden="true" className="reel-lock">
-                    {locked[i] ? "🔒" : ""}
-                  </span>
-                </button>
-                <button
-                  aria-label={`Pick a letter for reel ${i + 1}`}
-                  className="reel-pick"
-                  disabled={disabled || spinning || locked[i]}
-                  onClick={() => openPicker(i)}
-                  type="button"
-                >
-                  ⌨️
                 </button>
               </div>
             );
@@ -612,13 +617,15 @@ export default function SlotMachine({
 
       {!interacted && !disabled ? (
         <p className="machine-hint" aria-hidden="true">
-          👉 Pull the lever for luck — or tap ⌨️ under a reel to pick its
-          letter
+          👉 Pull the lever for luck — or tap a reel to pick its letter
         </p>
       ) : null}
 
-      {pickerReel !== null ? (
-        <div
+      {/* Portalled: the parallax transform on the stage would otherwise
+          turn position:fixed into position:absolute for this overlay. */}
+      {pickerReel !== null
+        ? createPortal(
+            <div
           aria-label={`Pick a letter for reel ${pickerReel + 1}`}
           aria-modal="true"
           className="picker-overlay"
@@ -660,8 +667,10 @@ export default function SlotMachine({
               Close
             </button>
           </div>
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

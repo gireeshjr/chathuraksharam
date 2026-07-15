@@ -895,13 +895,14 @@ export default function Home() {
               <p className="panel-copy mt-2">
                 Find today&apos;s five-aksharam Malayalam word. The hinted
                 first letter starts locked in for you. Pull the lever and the
-                reels spin, or set a reel yourself — tap ⌨️ under it to pick
-                its letter from a keyboard, or drag the reel. The lever
+                reels spin, or set a reel yourself — tap it to pick its
+                letter from a keyboard, or drag it like a dial. The lever
                 always lands on a real Malayalam word that fits your locked
-                letters when one exists. Tap a letter to lock it; when all
-                five are locked, the word is checked. Green means the
-                aksharam is in the right spot, gold means it is in the word,
-                and dark means it is not used. Guess in five tries.
+                letters when one exists. Use the padlock above a reel to
+                lock its letter in; when all five are locked, the word is
+                checked. Green means the aksharam is in the right spot, gold
+                means it is in the word, and dark means it is not used.
+                Guess in five tries.
               </p>
             </div>
 

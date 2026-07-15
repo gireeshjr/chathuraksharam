@@ -44,23 +44,28 @@ not by curling HTML.
 - The ONLY input is the slot machine: five `.reel` buttons + a `.lever` button.
   Click the lever → unlocked reels spin (~2s full speed) and land on weighted-
   random letters (absent-marked letters are rare, present/correct ~3x likely).
-  Tap a reel to lock/unlock; locking all five auto-checks after ~1.2s
-  (unlocking inside that window cancels). Locking is a no-op before the first
-  pull. Reels auto-unlock after each reveal.
-- Read a reel's current letter from its aria-label: `Reel N: <letter>, <sound>. …`;
-  locked state from `aria-pressed`.
-- Reels are also hand-settable (luck + effort): the `.reel-pick` button
-  under each reel (`Pick a letter for reel N`) opens a keyboard overlay
-  (`.picker-overlay`, one `.picker-key` per aksharam with keyboard-state
-  colors) — picking snap-rolls the reel to that letter along the shortest
-  path (REEL_SEQ = allKeys[(i*11)%35]). Dragging the `.reel-dial`
-  vertically still scrolls it with snap-to-letter. Tap-vs-dial is judged by outcome, not a
-  pixel slop: a gesture that stays on the same letter and moves less than
-  ~45% of an item height toggles the lock (so wobbly touch taps land); a
-  drag that reaches another letter dials and must NOT toggle the lock.
-  Locked reels refuse picking and drags. To assemble a specific word fast
-  in a test, pick each reel's target letter via the keyboard overlay and
-  lock it — no luck needed.
+  Toggle a reel's `.reel-lock-btn` padlock to lock/unlock; locking all five
+  auto-checks after ~1.2s (unlocking inside that window cancels). Reels
+  auto-unlock after each reveal.
+- Read a reel's current letter from its dial aria-label:
+  `Reel N: <letter>, <sound>. …`; locked state from `aria-pressed` on the
+  `.reel-lock-btn`.
+- Reels are also hand-settable (luck + effort): TAPPING the `.reel-dial`
+  opens a keyboard overlay (`.picker-overlay`, one `.picker-key` per
+  aksharam with keyboard-state colors; portalled to body — do not nest it
+  under the transformed stage or position:fixed breaks) — picking
+  snap-rolls the reel to that letter along the shortest path (REEL_SEQ =
+  allKeys[(i*11)%35]). Dragging the `.reel-dial` vertically still scrolls
+  it with snap-to-letter. Locking is a SEPARATE `.reel-lock-btn` padlock
+  button on top of each reel (aria `Lock reel N on <letter>` / `Unlock
+  reel N`, aria-pressed = locked); the dial itself never toggles locks.
+  Tap-vs-dial on the dial is judged by outcome, not a pixel slop: a
+  gesture that stays on the same letter and moves less than ~45% of an
+  item height opens the picker (so wobbly touch taps land); a drag that
+  reaches another letter dials and must NOT open the picker. Locked reels
+  refuse picking and drags. To assemble a specific word fast in a test,
+  pick each reel's target letter via the keyboard overlay and lock it —
+  no luck needed.
 - The lever is a pointer gesture (pointerdown grabs with capture, pointerup
   spins; keyboard fires via click detail 0) and has `touch-action: none`,
   so pulling it on mobile must move the lever, never scroll the page.

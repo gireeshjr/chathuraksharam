@@ -697,35 +697,44 @@ button {
 }
 
 .reel.locked .reel-dial {
-  cursor: pointer;
+  cursor: not-allowed;
 }
 
-.reel-pick {
+/* Dedicated lock toggle sitting on top of each dial: an always-visible
+   open/closed padlock, separate from the dial's pick-a-letter tap area. */
+.reel-lock-btn {
   align-items: center;
   background: rgba(255, 255, 255, 0.045);
   border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.45);
   cursor: pointer;
   display: flex;
   font-size: 13px;
-  height: 26px;
+  height: 28px;
   justify-content: center;
   line-height: 1;
+  opacity: 0.85;
   padding: 0;
-  transition: background 120ms ease;
+  transition: background 120ms ease, opacity 120ms ease;
   width: 100%;
 }
 
-.reel-pick:hover:not(:disabled),
-.reel-pick:focus-visible {
+.reel-lock-btn:hover:not(:disabled),
+.reel-lock-btn:focus-visible {
   background: rgba(224, 170, 75, 0.22);
+  opacity: 1;
   outline: none;
 }
 
-.reel-pick:disabled {
+.reel-lock-btn:disabled {
   cursor: not-allowed;
   opacity: 0.3;
+}
+
+.reel.locked .reel-lock-btn {
+  background: rgba(224, 170, 75, 0.28);
+  opacity: 1;
 }
 
 /* Per-reel letter picker */
@@ -903,15 +912,6 @@ button {
   inset: 0;
   pointer-events: none;
   position: absolute;
-}
-
-.reel-lock {
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
-  font-size: 0.85rem;
-  position: absolute;
-  right: 5px;
-  top: 4px;
-  z-index: 1;
 }
 
 .lever {
