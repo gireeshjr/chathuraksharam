@@ -641,6 +641,7 @@ button {
   border: 1.5px solid var(--glass-border-dim);
   border-radius: 12px;
   display: flex;
+  flex: 1;
   flex-direction: column;
   overflow: hidden;
   position: relative;
@@ -700,29 +701,34 @@ button {
   cursor: not-allowed;
 }
 
-/* Dedicated lock toggle sitting on top of each dial: an always-visible
-   open/closed padlock, separate from the dial's pick-a-letter tap area. */
+/* Each grid cell is a column: a standalone padlock toggle sitting ABOVE
+   the reel's bordered box (never inside its highlight), then the dial. */
+.reel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .reel-lock-btn {
   align-items: center;
-  background: rgba(255, 255, 255, 0.045);
-  border: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
-  border-radius: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border-dim);
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
-  font-size: 13px;
-  height: 28px;
+  font-size: 1.3rem;
   justify-content: center;
   line-height: 1;
-  opacity: 0.85;
-  padding: 0;
-  transition: background 120ms ease, opacity 120ms ease;
+  opacity: 0.8;
+  padding: 6px 0;
+  transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
   width: 100%;
 }
 
 .reel-lock-btn:hover:not(:disabled),
 .reel-lock-btn:focus-visible {
-  background: rgba(224, 170, 75, 0.22);
+  border-color: var(--gold);
   opacity: 1;
   outline: none;
 }
@@ -732,8 +738,10 @@ button {
   opacity: 0.3;
 }
 
-.reel.locked .reel-lock-btn {
-  background: rgba(224, 170, 75, 0.28);
+.reel-lock-btn.locked {
+  background: rgba(224, 170, 75, 0.24);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(224, 170, 75, 0.25);
   opacity: 1;
 }
 
@@ -1404,6 +1412,11 @@ button {
     border-radius: 9px;
   }
 
+  .reel-lock-btn {
+    font-size: 1.15rem;
+    padding: 5px 0;
+  }
+
   .reel-item {
     font-size: 1.15rem;
   }
@@ -1464,6 +1477,15 @@ button {
     --reel-item: 42px;
     gap: 4px;
     padding: 6px;
+  }
+
+  .reel-col {
+    gap: 4px;
+  }
+
+  .reel-lock-btn {
+    font-size: 1.05rem;
+    padding: 4px 0;
   }
 
   .reel-item {

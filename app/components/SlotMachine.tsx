@@ -535,12 +535,7 @@ export default function SlotMachine({
                   ? `transform ${820 + i * 240}ms cubic-bezier(0.18, 0.7, 0.3, 1.08)`
                   : "transform 160ms cubic-bezier(0.3, 1.3, 0.5, 1)";
             return (
-              <div
-                className={`reel ${locked[i] ? "locked" : ""} ${
-                  reelMotion === "spin" ? "spinning" : ""
-                } status-${status}`}
-                key={i}
-              >
+              <div className="reel-col" key={i}>
                 <button
                   aria-label={
                     locked[i]
@@ -548,13 +543,18 @@ export default function SlotMachine({
                       : `Lock reel ${i + 1} on ${key.ml}`
                   }
                   aria-pressed={locked[i]}
-                  className="reel-lock-btn"
+                  className={`reel-lock-btn ${locked[i] ? "locked" : ""}`}
                   disabled={disabled || spinning}
                   onClick={() => toggleLock(i)}
                   type="button"
                 >
                   {locked[i] ? "🔒" : "🔓"}
                 </button>
+                <div
+                  className={`reel ${locked[i] ? "locked" : ""} ${
+                    reelMotion === "spin" ? "spinning" : ""
+                  } status-${status}`}
+                >
                 <button
                   aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${
                     locked[i]
@@ -588,6 +588,7 @@ export default function SlotMachine({
                     <div aria-hidden="true" className="reel-shade" />
                   </div>
                 </button>
+                </div>
               </div>
             );
           })}
