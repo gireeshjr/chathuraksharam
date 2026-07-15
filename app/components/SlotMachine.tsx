@@ -429,6 +429,11 @@ export default function SlotMachine({
     };
     position();
     window.addEventListener("resize", position);
+    // The callout renders below the machine, often past the fold on
+    // phones — bring it into view whenever it opens or retargets.
+    machineRef.current
+      ?.querySelector(".picker-pop")
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     return () => window.removeEventListener("resize", position);
   }, [pickerReel]);
 

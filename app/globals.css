@@ -667,6 +667,16 @@ button {
   border-color: rgba(255, 226, 158, 0.45);
 }
 
+/* The reel the picker callout is editing: emerald, never confusable with
+   the gold "locked" look. Placed after the status rules and using an
+   outline so no border rule can override or hide it. */
+.reel-bank .reel.targeted {
+  border-color: var(--emerald);
+  box-shadow: 0 0 18px rgba(31, 180, 125, 0.45);
+  outline: 2px solid var(--emerald);
+  outline-offset: 1.5px;
+}
+
 .reel-dial {
   background: transparent;
   border: 0;
@@ -699,14 +709,6 @@ button {
   cursor: not-allowed;
 }
 
-/* The reel the picker callout is editing: emerald, so it never reads as
-   the gold "locked" state. */
-.reel.targeted {
-  border-color: var(--emerald);
-  box-shadow:
-    0 0 0 1px rgba(31, 180, 125, 0.55),
-    0 0 16px rgba(31, 180, 125, 0.3);
-}
 
 /* Each grid cell is a column: a standalone padlock toggle sitting ABOVE
    the reel's bordered box (never inside its highlight), then the dial. */
