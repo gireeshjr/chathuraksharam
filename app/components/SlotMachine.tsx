@@ -2,6 +2,7 @@
 
 import {
   CSSProperties,
+  memo,
   PointerEvent as ReactPointerEvent,
   useEffect,
   useMemo,
@@ -17,15 +18,16 @@ type ReelMotion = "idle" | "spin" | "snap";
 export type MachineEvent = "land" | "freespin" | "lock" | "unlock" | "dial";
 
 const REEL_COUNT = 5;
-// Enough runway for the farthest-travelling reel: the last reel spins
-// (1 + 4) full loops plus almost a full alphabet of approach, so the strip
-// must hold at least 9 alphabet copies or it scrolls into blank space.
-const STRIP_COPIES = 9;
+// Enough runway for the farthest-travelling reel: a spin adds at most 2 full
+// loops plus almost a full alphabet of approach from the middle copies, so
+// the strip must hold at least 6 alphabet copies or it scrolls into blank
+// space. Keeping the strip short matters: each reel is one big composited
+// layer, and taller strips made spins rasterize megapixels on mobile.
+const STRIP_COPIES = 6;
 // Deterministic pseudo-shuffle (stride coprime with 35) so the server and
 // client render identical reels; randomness only enters via lever pulls.
 const STRIDE = 11;
 const INITIAL_OFFSETS = [0, 7, 14, 21, 28];
-const TAP_SLOP_PX = 7;
 
 function spinWeight(state: TileState | undefined) {
   // Lever luck is weighted: letters proven absent become rare and letters
@@ -88,6 +90,37 @@ function pickSpinTargets(
     ),
   };
 }
+
+// The strip letters never change while playing (only the wrapper transform
+// does), but they are by far the most DOM in the app — STRIP_COPIES copies of
+// the alphabet per reel. Memoising them keeps every positions/drag/lock state
+// change from reconciling thousands of spans, which visibly froze mobile.
+const ReelStripItems = memo(function ReelStripItems({
+  reelSeq,
+  learner,
+}: {
+  reelSeq: KeyDef[];
+  learner: boolean;
+}) {
+  return (
+    <>
+      {Array.from({ length: STRIP_COPIES }, (_, copy) =>
+        reelSeq.map((item, idx) => (
+          <span
+            aria-hidden={copy > 0}
+            className={`reel-item ${learner ? "learner" : ""}`}
+            key={`${copy}-${idx}`}
+          >
+            <span className="reel-symbol">{item.ml}</span>
+            {learner ? (
+              <span className="reel-sound">{item.sound}</span>
+            ) : null}
+          </span>
+        )),
+      )}
+    </>
+  );
+});
 
 export default function SlotMachine({
   keys,
@@ -161,7 +194,7 @@ export default function SlotMachine({
     moved: number;
     live: number;
   } | null>(null);
-  const lastDragMoved = useRef(0);
+  const lastPointerWasDrag = useRef(false);
   const rafRef = useRef(0);
   const positionsRef = useRef(positions);
   const spinning = motion.some((m) => m === "spin");
@@ -213,6 +246,36 @@ export default function SlotMachine({
     });
   }
 
+  // The lever is a pointer gesture, not a click: grab on pointerdown (with
+  // capture, so dragging downward keeps the events even though the page
+  // could scroll), spin on release. Click only fires it for keyboard
+  // activation (detail === 0), so pointer input never double-pulls.
+  const leverHeld = useRef(false);
+
+  const onLeverPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    leverHeld.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setInteracted(true); // stop the hint animation fighting the pull
+    setLeverPulled(true);
+  };
+
+  const onLeverRelease = (fire: boolean) => {
+    if (!leverHeld.current) return;
+    leverHeld.current = false;
+    setLeverPulled(false);
+    if (fire) pullLever();
+  };
+
+  // Disabled mid-hold (e.g. the auto-check fires) means no pointerup ever
+  // arrives on the button, so un-pull the knob during render like the
+  // roundKey reset above. leverHeld needs no reset: the next interaction
+  // always begins with a pointerdown that sets it.
+  const [prevDisabled, setPrevDisabled] = useState(disabled);
+  if (prevDisabled !== disabled) {
+    setPrevDisabled(disabled);
+    if (disabled) setLeverPulled(false);
+  }
+
   function pullLever() {
     if (disabled || spinning || dragReel !== null) return;
     if (locked.every(Boolean)) return;
@@ -247,7 +310,9 @@ export default function SlotMachine({
       const target = targets[i];
       const base = ((Math.round(position) % seqLength) + seqLength) % seqLength;
       const forward = (target - base + seqLength) % seqLength;
-      const loops = reducedMotion ? 0 : 1 + i;
+      // Later reels loop once more and take longer, so they still land in a
+      // stagger; capped at 2 loops so the strip runway stays short.
+      const loops = reducedMotion ? 0 : 1 + Math.min(i, 1);
       nextPositions[i] = Math.round(position) + loops * seqLength + forward;
 
       const duration = reducedMotion ? 30 : 820 + i * 240;
@@ -296,7 +361,7 @@ export default function SlotMachine({
     event: ReactPointerEvent<HTMLButtonElement>,
     index: number,
   ) => {
-    lastDragMoved.current = 0;
+    lastPointerWasDrag.current = false;
     if (disabled || spinning || locked[index]) return;
     const window_ = event.currentTarget.querySelector(".reel-window");
     const height = window_
@@ -325,7 +390,7 @@ export default function SlotMachine({
       // Dragging down pulls earlier letters into view, like rolling a
       // suitcase dial toward you.
       const live = Math.min(
-        (STRIP_COPIES - 1) * 35 - 2,
+        (STRIP_COPIES - 1) * seqLength - 2,
         Math.max(2, drag.startPos - dy / drag.itemHeight),
       );
       drag.live = live;
@@ -337,11 +402,19 @@ export default function SlotMachine({
       const drag = dragRef.current;
       if (!drag) return;
       dragRef.current = null;
-      lastDragMoved.current = drag.moved;
       const index = drag.reel;
       setDragReel(null);
 
-      if (drag.moved > TAP_SLOP_PX) {
+      // Treat the gesture as a tap unless it actually reached another
+      // letter. A strict pixel slop misclassified real taps as drags on
+      // touchscreens (finger wobble grows when the main thread is busy),
+      // which made lock taps silently miss.
+      const isTap =
+        Math.round(drag.live) === Math.round(drag.startPos) &&
+        drag.moved < drag.itemHeight * 0.45;
+      lastPointerWasDrag.current = !isTap;
+
+      if (!isTap) {
         setInteracted(true);
         sfx.tick();
         buzz(6);
@@ -375,9 +448,11 @@ export default function SlotMachine({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locked, seqLength]);
 
-  function toggleLock(index: number) {
+  function toggleLock(index: number, fromKeyboard: boolean) {
     if (disabled || spinning) return;
-    if (lastDragMoved.current > TAP_SLOP_PX) return; // drag, not a tap
+    // Pointer clicks that were really dials must not toggle; keyboard
+    // activation has no preceding pointerdown, so it always counts.
+    if (!fromKeyboard && lastPointerWasDrag.current) return;
 
     const next = [...locked];
     next[index] = !next[index];
@@ -434,7 +509,7 @@ export default function SlotMachine({
                   aria-pressed={locked[i]}
                   className="reel-dial"
                   disabled={disabled}
-                  onClick={() => toggleLock(i)}
+                  onClick={(event) => toggleLock(i, event.detail === 0)}
                   onPointerDown={(event) => onDialPointerDown(event, i)}
                   type="button"
                 >
@@ -448,20 +523,7 @@ export default function SlotMachine({
                         } as CSSProperties
                       }
                     >
-                      {Array.from({ length: STRIP_COPIES }, (_, copy) =>
-                        reelSeq.map((item, idx) => (
-                          <span
-                            aria-hidden={copy > 0}
-                            className={`reel-item ${learner ? "learner" : ""}`}
-                            key={`${copy}-${idx}`}
-                          >
-                            <span className="reel-symbol">{item.ml}</span>
-                            {learner ? (
-                              <span className="reel-sound">{item.sound}</span>
-                            ) : null}
-                          </span>
-                        )),
-                      )}
+                      <ReelStripItems learner={learner} reelSeq={reelSeq} />
                     </div>
                     <div aria-hidden="true" className="reel-shade" />
                   </div>
@@ -489,7 +551,12 @@ export default function SlotMachine({
             !interacted && !disabled ? "hinting" : ""
           }`}
           disabled={disabled || spinning || allLocked}
-          onClick={pullLever}
+          onClick={(event) => {
+            if (event.detail === 0) pullLever();
+          }}
+          onPointerCancel={() => onLeverRelease(false)}
+          onPointerDown={onLeverPointerDown}
+          onPointerUp={() => onLeverRelease(true)}
           type="button"
         >
           <span className="lever-slot" aria-hidden="true" />

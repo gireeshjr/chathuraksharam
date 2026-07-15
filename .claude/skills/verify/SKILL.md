@@ -50,12 +50,19 @@ not by curling HTML.
 - Reels are also hand-dialable (luck + effort): `Reel N next letter` /
   `Reel N previous letter` buttons nudge one step through the strip
   (REEL_SEQ = allKeys[(i*11)%35]); dragging the `.reel-dial` vertically
-  scrolls it with snap-to-letter (drag > ~7px must NOT toggle the lock).
+  scrolls it with snap-to-letter. Tap-vs-dial is judged by outcome, not a
+  pixel slop: a gesture that stays on the same letter and moves less than
+  ~45% of an item height toggles the lock (so wobbly touch taps land); a
+  drag that reaches another letter dials and must NOT toggle the lock.
   Locked reels refuse nudges and drags. To assemble a specific word fast in
   a test, dial each reel to its target letter and lock it — no luck needed.
+- The lever is a pointer gesture (pointerdown grabs with capture, pointerup
+  spins; keyboard fires via click detail 0) and has `touch-action: none`,
+  so pulling it on mobile must move the lever, never scroll the page.
 - Blank-reel regression guard: during a full-speed pull, every
   `.reel-window` payline must always overlap a non-empty `.reel-item`
-  (the strip needs ≥9 alphabet copies of runway for the farthest reel).
+  (spins loop at most twice — STRIP_COPIES=6 alphabet copies of runway;
+  keep strips short, they are huge composited layers on mobile).
 - Reel 1 starts ON the answer's first aksharam and pre-locked (the hint
   gives it away anyway); it re-locks at the start of every round, stays
   unlockable, and never spins while locked. Only 4 locks are needed to

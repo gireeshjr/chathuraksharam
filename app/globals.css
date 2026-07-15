@@ -745,7 +745,10 @@ button {
   will-change: transform;
 }
 
-.reel.spinning .reel-strip {
+/* Blur the small window, not the strip: toggling a filter on the full-height
+   strip re-rasterised five huge layers every time a reel landed, freezing
+   the page right when players start locking letters. */
+.reel.spinning .reel-window {
   filter: blur(1.6px);
 }
 
@@ -816,7 +819,12 @@ button {
   justify-content: flex-end;
   padding: 12px 8px 10px;
   position: relative;
+  /* The pull is a downward drag; without this, mobile scrolls the page
+     instead of moving the lever and the tap never lands. */
+  touch-action: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
+  user-select: none;
+  -webkit-user-select: none;
   width: 72px;
 }
 
