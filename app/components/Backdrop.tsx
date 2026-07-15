@@ -45,7 +45,12 @@ export default function Backdrop() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const isSmall = window.matchMedia("(max-width: 639px)").matches;
+    const isCoarse = window.matchMedia("(pointer: coarse)").matches;
     const count = isSmall ? 26 : 52;
+    // Phones: half the frame rate. A 60fps full-screen canvas is a steady
+    // energy drain iOS punishes with page kills; the drift reads the same
+    // at 30fps.
+    const minFrameMs = isCoarse ? 1000 / 30 - 2 : 0;
 
     let width = 0;
     let height = 0;
@@ -67,7 +72,7 @@ export default function Backdrop() {
     const particles: Particle[] = Array.from({ length: count }, () => spawn());
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, isCoarse ? 1.5 : 2);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = Math.floor(width * dpr);
@@ -77,7 +82,13 @@ export default function Backdrop() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
+    let lastFrame = 0;
     const draw = (time: number) => {
+      if (minFrameMs && time - lastFrame < minFrameMs) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrame = time;
       ctx.clearRect(0, 0, width, height);
 
       for (const p of particles) {
