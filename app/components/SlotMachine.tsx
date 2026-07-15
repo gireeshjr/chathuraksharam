@@ -404,11 +404,7 @@ export default function SlotMachine({
 
   function openPicker(index: number) {
     if (disabled || spinning || locked[index] || dragReel !== null) return;
-    if (pickerReel === index) {
-      // Tapping the targeted reel again folds the callout away.
-      setPickerReel(null);
-      return;
-    }
+    if (pickerReel === index) return; // already targeted — stays open
     sfx.key();
     setPickerReel(index);
   }
@@ -631,8 +627,8 @@ export default function SlotMachine({
                 </button>
                 <div
                   className={`reel ${locked[i] ? "locked" : ""} ${
-                    reelMotion === "spin" ? "spinning" : ""
-                  } status-${status}`}
+                    pickerReel === i ? "targeted" : ""
+                  } ${reelMotion === "spin" ? "spinning" : ""} status-${status}`}
                 >
                 <button
                   aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${

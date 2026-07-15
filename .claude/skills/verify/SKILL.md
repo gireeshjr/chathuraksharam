@@ -54,7 +54,10 @@ not by curling HTML.
   opens an inline keyboard callout below the reel bank (`.picker-pop`,
   one `.picker-key` per aksharam with keyboard-state colors; its
   `.picker-caret` points at the targeted reel and slides when another
-  reel is tapped; tapping the same reel again closes it). Picking
+  reel is tapped; the targeted reel gets an emerald `.targeted` ring,
+  distinct from the gold locked style; tapping the targeted reel again
+  is a no-op — it closes only via ✕, the round ending, or locking the
+  last reel). Picking
   snap-rolls the reel to that letter along the shortest path (REEL_SEQ =
   allKeys[(i*11)%35]) and the callout STAYS OPEN for the next reel.
   Dragging the `.reel-dial` vertically still scrolls it with
