@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.chathuraksharam.com"),
   title: "Chathuraksharam",
   description:
-    "Play a fresh daily Malayalam word-square puzzle with fluent and learner modes.",
+    "Spin, lock, and solve word puzzles across languages and categories.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -30,14 +30,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Chathuraksharam",
     description:
-      "A daily Malayalam word-square puzzle with Manglish learner support.",
+      "A multilingual word game with endless category-based puzzle streams.",
     images: ["/og.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Chathuraksharam",
     description:
-      "A daily Malayalam word-square puzzle with Manglish learner support.",
+      "A multilingual word game with endless category-based puzzle streams.",
     images: ["/og.png"],
   },
 };

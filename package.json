@@ -9,7 +9,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "generate:puzzles": "node --env-file-if-exists=.env.local scripts/generate-puzzles.mjs",
+    "test": "npm run validate:content && npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint ."
   },
   "dependencies": {

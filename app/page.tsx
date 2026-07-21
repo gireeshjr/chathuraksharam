@@ -11,137 +11,22 @@ import {
 import posthog from "posthog-js";
 import SlotMachine, { MachineEvent } from "./components/SlotMachine";
 import WordDrum, { DrumRow } from "./components/WordDrum";
+import {
+  getPack,
+  LANGUAGE_PACKS,
+  LanguagePack,
+  Puzzle,
+  splitWord,
+} from "./lib/content";
 import { buzz, setSfxEnabled, sfx } from "./lib/sfx";
-
-// Keep the answer bank kid-safe: everyday, nature, poetry, school-friendly,
-// non-political, non-violent words with learner-friendly clues.
-const WORDS = [
-  { ml: "കവിതകൾ", manglish: "kavithakal", meaning: "poems", clue: "Words arranged with rhythm and feeling." },
-  { ml: "പുലരികൾ", manglish: "pularikal", meaning: "dawns", clue: "The first light of many mornings." },
-  { ml: "കനിവുകൾ", manglish: "kanivukal", meaning: "kindnesses", clue: "Small acts of compassion." },
-  { ml: "കിരണങ്ങൾ", manglish: "kiranangal", meaning: "rays", clue: "Lines of light from the sun." },
-  { ml: "മനസ്സുകൾ", manglish: "manassukal", meaning: "minds", clue: "Places where thoughts and feelings live." },
-  { ml: "ദിനകരൻ", manglish: "dinakaran", meaning: "sun", clue: "A poetic word for the day-maker." },
-  { ml: "മരങ്ങളിൽ", manglish: "marangalil", meaning: "in the trees", clue: "Where birds sit and build their nests." },
-  { ml: "വഴികളിൽ", manglish: "vazhikalil", meaning: "on paths", clue: "Where people walk or travel." },
-  { ml: "നഗരങ്ങൾ", manglish: "nagarangal", meaning: "cities", clue: "Large busy places where many people live." },
-  { ml: "വിരലുകൾ", manglish: "viralukal", meaning: "fingers", clue: "You count, touch, and type with them." },
-  { ml: "മലരുകൾ", manglish: "malarukal", meaning: "flowers", clue: "Bright blossoms on plants." },
-  { ml: "നിറവുകൾ", manglish: "niravukal", meaning: "fullnesses", clue: "A sense of being complete." },
-  { ml: "നിലാവുകൾ", manglish: "nilavukal", meaning: "moonlights", clue: "Soft light from the moon." },
-  { ml: "അരികുകൾ", manglish: "arikukal", meaning: "edges", clue: "The sides or borders of something." },
-  { ml: "പുതുമകൾ", manglish: "puthumakal", meaning: "freshnesses", clue: "Newness, novelty, or fresh qualities." },
-  { ml: "തണലുകൾ", manglish: "thanalukal", meaning: "shades", clue: "Cool cover away from sunlight." },
-  { ml: "മധുരങ്ങൾ", manglish: "madhurangal", meaning: "sweetnesses", clue: "Pleasant sweet tastes or moments." },
-  { ml: "നിഴലുകൾ", manglish: "nizhalukal", meaning: "shadows", clue: "Dark shapes made when light is blocked." },
-  { ml: "തരംഗങ്ങൾ", manglish: "tharangangal", meaning: "waves", clue: "Moving rises in water, sound, or feeling." },
-  { ml: "ചുവടുകൾ", manglish: "chuvadukal", meaning: "steps", clue: "Footsteps or moves in a sequence." },
-  { ml: "വരവുകൾ", manglish: "varavukal", meaning: "arrivals", clue: "Comings or arrivals." },
-] as const;
-
-// Broader guess dictionary: every lever pull lands on a real Malayalam word
-// that fits the player's locked letters. Answers stay in WORDS; these only
-// need to be real, kid-safe, and spellable with the on-screen keys.
-const EXTRA_GUESS_WORDS = [
-  "കനവുകൾ", // dreams
-  "നിനവുകൾ", // remembrances
-  "കുരുവികൾ", // sparrows
-  "കതകുകൾ", // doors
-  "പുഴകളിൽ", // in the rivers
-  "തളിരുകൾ", // tender shoots
-  "അലകളിൽ", // on the waves
-  "കനലുകൾ", // embers
-  "നദികളിൽ", // in the rivers
-  "വരികളിൽ", // in the lines
-  "കനികളിൽ", // in the fruits
-  "കരകളിൽ", // on the shores
-  "ചുവരുകൾ", // walls
-  "ചുമടുകൾ", // loads
-  "അകലങ്ങൾ", // distances
-  "അരുവികൾ", // streams
-  "നിലങ്ങളിൽ", // in the fields
-  "ഗണങ്ങളിൽ", // in the groups
-  "നടുവിരൽ", // middle finger
-  "അണകളിൽ", // at the dams
-  "ദിനങ്ങളിൽ", // in the days
-  "കരിമണൽ", // black sand
-  "കരിനിഴൽ", // dark shadow
-  "അരണകൾ", // skinks
-  "മറകളിൽ", // behind the covers
-  "തറകളിൽ", // on the floors
-  "നിരകളിൽ", // in the rows
-  "വിലകളിൽ", // in the prices
-  "കലകളിൽ", // in the arts
-  "കുറവുകൾ", // shortcomings
-  "ചുഴികളിൽ", // in the whirlpools
-  "വരകളിൽ", // in the drawings
-  "പുരങ്ങളിൽ", // in the houses
-  "പുരികങ്ങൾ", // eyebrows
-  "മലകളിൽ", // on the mountains
-  "മരങ്ങളിൻ", // of trees (poetic genitive)
-  "കിളികളിൽ", // among the birds
-] as const;
-
-const KEYBOARD_ROWS = [
-  [
-    { ml: "ക", sound: "ka" },
-    { ml: "പു", sound: "pu" },
-    { ml: "നി", sound: "ni" },
-    { ml: "വു", sound: "vu" },
-    { ml: "മ", sound: "ma" },
-    { ml: "വ", sound: "va" },
-    { ml: "രി", sound: "ri" },
-  ],
-  [
-    { ml: "ത", sound: "tha" },
-    { ml: "ല", sound: "la" },
-    { ml: "ര", sound: "ra" },
-    { ml: "ങ്ങ", sound: "nga" },
-    { ml: "കു", sound: "ku" },
-    { ml: "ൻ", sound: "n" },
-    { ml: "വി", sound: "vi" },
-  ],
-  [
-    { ml: "ദി", sound: "di" },
-    { ml: "ചു", sound: "chu" },
-    { ml: "ഴി", sound: "zhi" },
-    { ml: "ണ", sound: "na" },
-    { ml: "തു", sound: "thu" },
-    { ml: "രു", sound: "ru" },
-    { ml: "ലു", sound: "lu" },
-  ],
-  [
-    { ml: "അ", sound: "a" },
-    { ml: "ഗ", sound: "ga" },
-    { ml: "ധു", sound: "dhu" },
-    { ml: "രം", sound: "ram" },
-    { ml: "ന", sound: "na" },
-    { ml: "ടു", sound: "tu" },
-    { ml: "ളി", sound: "li" },
-  ],
-  [
-    { ml: "കി", sound: "ki" },
-    { ml: "സ്സു", sound: "ssu" },
-    { ml: "ൽ", sound: "l" },
-    { ml: "റ", sound: "ra" },
-    { ml: "ലാ", sound: "laa" },
-    { ml: "ഴ", sound: "zha" },
-    { ml: "ൾ", sound: "l" },
-  ],
-] as const;
 
 const MAX_GUESSES = 5;
 const WORD_SIZE = 5;
-const START_DATE = Date.UTC(2026, 0, 1);
-const DAY_MS = 86_400_000;
-const STORAGE_KEY = "chathuraksharam-state-v1";
-const MODE_KEY = "chathuraksharam-mode-v1";
+const STORAGE_KEY = "chathuraksharam-stream-state-v2";
 const SOUND_KEY = "chathuraksharam-sound-v1";
 const AUTO_CHECK_DELAY_MS = 1200;
 // Daily-reminder channel: joining IS the reminder signup; members can
 // leave the channel any time, so no extra confirmation step is needed.
-const WHATSAPP_CHANNEL_URL =
-  "https://whatsapp.com/channel/0029VbDGDdmAe5VjVZMjtH3o";
 
 // Tile-flip choreography. Keyboard state, confetti, and the result modal all
 // wait for the final tile to land so the reveal stays suspenseful.
@@ -157,7 +42,6 @@ const CONFETTI_PIECES = Array.from({ length: 44 }, (_, index) => ({
   spin: `${0.9 + (index % 5) * 0.35}s`,
 }));
 
-type Mode = "fluent" | "learner";
 type TileState = "correct" | "present" | "absent" | "empty";
 
 type PersistedState = {
@@ -170,67 +54,13 @@ type PersistedState = {
   lastSolvedPuzzleId?: number;
 };
 
-const segmenter =
-  typeof Intl !== "undefined" && "Segmenter" in Intl
-    ? new Intl.Segmenter("ml", { granularity: "grapheme" })
-    : null;
-
-const allKeys = KEYBOARD_ROWS.flat();
-
-function splitAksharam(word: string) {
-  const cleaned = word.trim().replace(/\s+/g, "");
-  if (segmenter) {
-    return Array.from(segmenter.segment(cleaned), (part) => part.segment);
-  }
-  return Array.from(cleaned);
-}
-
-// Fail the build when any answer or guess word cannot be entered with the
-// on-screen keyboard. This keeps the dictionary and keyboard in sync.
-const GUESS_WORDS = [...WORDS.map((word) => word.ml), ...EXTRA_GUESS_WORDS];
-const keyboardAksharams = new Set<string>(allKeys.map((key) => key.ml));
-for (const word of GUESS_WORDS) {
-  const tiles = splitAksharam(word);
-  if (tiles.length !== WORD_SIZE) {
-    throw new Error(
-      `Word-bank entry ${word} has ${tiles.length} aksharams; expected ${WORD_SIZE}.`,
-    );
-  }
-
-  const missingTiles = [...new Set(tiles.filter((tile) => !keyboardAksharams.has(tile)))];
-  if (missingTiles.length > 0) {
-    throw new Error(
-      `Word-bank entry ${word} needs missing keyboard key(s): ${missingTiles.join(", ")}.`,
-    );
-  }
-}
-
-const GUESS_WORD_TILES = GUESS_WORDS.map((word) => splitAksharam(word));
-
-// The puzzle day is anchored to UTC so the server-rendered page and every
-// client agree on the same puzzle number (local dates caused hydration
-// mismatches whenever the viewer's timezone crossed midnight before UTC).
-function getPuzzleId() {
-  const now = new Date();
-  const todayUtc = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-  );
-  return Math.floor((todayUtc - START_DATE) / DAY_MS);
-}
-
-function getAnswer(puzzleId: number) {
-  return WORDS[((puzzleId % WORDS.length) + WORDS.length) % WORDS.length];
-}
-
-function getSound(tile: string) {
-  return allKeys.find((key) => key.ml === tile)?.sound ?? tile;
-}
-
-function evaluateGuess(guess: string, answer: string): TileState[] {
-  const guessTiles = splitAksharam(guess);
-  const answerTiles = splitAksharam(answer);
+function evaluateGuess(
+  pack: LanguagePack,
+  guess: string,
+  answer: string,
+): TileState[] {
+  const guessTiles = splitWord(pack, guess);
+  const answerTiles = splitWord(pack, answer);
   const result: TileState[] = Array(WORD_SIZE).fill("absent");
   const remaining = new Map<string, number>();
 
@@ -265,11 +95,11 @@ function emptyState(puzzleId: number): PersistedState {
   };
 }
 
-function getInitialState(puzzleId: number): PersistedState {
+function getInitialState(puzzleId: number, storageKey: string): PersistedState {
   if (typeof window === "undefined") return emptyState(puzzleId);
 
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(storageKey);
     if (!stored) return emptyState(puzzleId);
 
     const parsed = JSON.parse(stored) as PersistedState;
@@ -299,16 +129,14 @@ function getInitialState(puzzleId: number): PersistedState {
   }
 }
 
-function getInitialMode(): Mode {
-  if (typeof window === "undefined") return "learner";
-  return window.localStorage.getItem(MODE_KEY) === "fluent"
-    ? "fluent"
-    : "learner";
-}
-
-function getShareText(state: PersistedState, answer: (typeof WORDS)[number]) {
+function getShareText(
+  pack: LanguagePack,
+  categoryLabel: string,
+  state: PersistedState,
+  answer: Puzzle,
+) {
   const rows = state.guesses.map((guess) =>
-    evaluateGuess(guess, answer.ml)
+    evaluateGuess(pack, guess, answer.word)
       .map((tile) =>
         tile === "correct" ? "🟩" : tile === "present" ? "🟨" : "⬛",
       )
@@ -317,28 +145,19 @@ function getShareText(state: PersistedState, answer: (typeof WORDS)[number]) {
   const score = state.solved ? state.guesses.length : "X";
 
   return [
-    `Chathuraksharam ${state.puzzleId + 1} ${score}/${MAX_GUESSES}`,
+    `Chathuraksharam · ${pack.nativeName} · ${categoryLabel} ${state.puzzleId + 1} · ${score}/${MAX_GUESSES}`,
     ...rows,
-    `🔥 ${state.streak} day streak`,
-    "Can you solve today's Malayalam word?",
+    `🔥 ${state.streak} round streak`,
+    `Can you solve a ${pack.name} word?`,
     window.location.origin,
   ].join("\n");
 }
 
-function getCountdown() {
-  const now = new Date();
-  const nextPuzzleAt = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate() + 1,
-  );
-  const remaining = Math.max(0, nextPuzzleAt - now.getTime());
-  const hours = Math.floor(remaining / 3_600_000);
-  const minutes = Math.floor((remaining % 3_600_000) / 60_000);
-  return `${hours}h ${minutes}m`;
-}
-
-function getKeyboardState(guesses: string[], answer: string) {
+function getKeyboardState(
+  pack: LanguagePack,
+  guesses: string[],
+  answer: string,
+) {
   const rank: Record<TileState, number> = {
     empty: 0,
     absent: 1,
@@ -348,8 +167,8 @@ function getKeyboardState(guesses: string[], answer: string) {
   const states = new Map<string, TileState>();
 
   guesses.forEach((guess) => {
-    const tiles = splitAksharam(guess);
-    const result = evaluateGuess(guess, answer);
+    const tiles = splitWord(pack, guess);
+    const result = evaluateGuess(pack, guess, answer);
 
     tiles.forEach((tile, index) => {
       const next = result[index];
@@ -363,25 +182,30 @@ function getKeyboardState(guesses: string[], answer: string) {
   return states;
 }
 
-// Today's answer is always excluded — the lookup must never spoil it.
-function lookupEntries(query: string, excludeMl: string) {
-  const normalized = query.trim().toLowerCase();
-  const candidates = WORDS.filter((word) => word.ml !== excludeMl);
-  if (!normalized) return candidates.slice(0, 5);
-
-  return candidates
-    .filter((word) =>
-      [word.ml, word.manglish, word.meaning, word.clue].some((field) =>
-        field.toLowerCase().includes(normalized),
-      ),
-    )
-    .slice(0, 5);
-}
-
 export default function Home() {
-  const puzzleId = useMemo(() => getPuzzleId(), []);
-  const answer = useMemo(() => getAnswer(puzzleId), [puzzleId]);
-  const answerTiles = useMemo(() => splitAksharam(answer.ml), [answer]);
+  const [languageId, setLanguageId] = useState("ml");
+  const [categoryId, setCategoryId] = useState("everyday");
+  const [puzzleId, setPuzzleId] = useState(0);
+  const pack = useMemo(() => getPack(languageId), [languageId]);
+  const category = useMemo(
+    () => pack.categories.find((item) => item.id === categoryId) ?? pack.categories[0],
+    [categoryId, pack],
+  );
+  const answer = category.puzzles[puzzleId % category.puzzles.length];
+  const answerTiles = useMemo(() => splitWord(pack, answer.word), [answer.word, pack]);
+  const allKeys = useMemo(
+    () => pack.keys.map((key) => ({ ml: key.text, sound: key.sound })),
+    [pack],
+  );
+  const getSound = useCallback(
+    (tile: string) => pack.keys.find((key) => key.text === tile)?.sound ?? tile,
+    [pack],
+  );
+  const guessWordTiles = useMemo(
+    () => pack.dictionary.map((word) => splitWord(pack, word)),
+    [pack],
+  );
+  const storageKey = `${STORAGE_KEY}-${pack.id}-${category.id}-${puzzleId}`;
   const [state, setState] = useState<PersistedState>(() => emptyState(puzzleId));
   // The hinted first letter starts locked in, so it previews on the board.
   const [preview, setPreview] = useState<string[]>(() => [
@@ -391,11 +215,9 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [mode, setMode] = useState<Mode>("learner");
-  const [lookup, setLookup] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
-  const [countdown, setCountdown] = useState(getCountdown);
+  const [showStreamMenu, setShowStreamMenu] = useState(false);
   const [settledCount, setSettledCount] = useState(0);
   const [revealing, setRevealing] = useState(false);
   const [winWaveRow, setWinWaveRow] = useState<number | null>(null);
@@ -405,7 +227,6 @@ export default function Home() {
   const autoCheckRef = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
-  const isLearner = mode === "learner";
   const gameOver = state.solved || state.guesses.length >= MAX_GUESSES;
   const inputLocked = gameOver || revealing;
   const roundOver = gameOver && !revealing;
@@ -414,15 +235,9 @@ export default function Home() {
     [state.guesses, settledCount],
   );
   const keyboardState = useMemo(
-    () => getKeyboardState(settledGuesses, answer.ml),
-    [answer, settledGuesses],
+    () => getKeyboardState(pack, settledGuesses, answer.word),
+    [answer.word, pack, settledGuesses],
   );
-  const lookupResults = useMemo(
-    () => lookupEntries(lookup, answer.ml),
-    [answer, lookup],
-  );
-  const winRate =
-    state.played > 0 ? Math.round((state.wins / state.played) * 100) : 0;
 
   // The drum face the player is on. While a reveal is running the drum must
   // hold the revealing row, and once the game ends it stays on the final
@@ -438,7 +253,7 @@ export default function Home() {
         const guess = state.guesses[rowIndex];
         const isActiveEntry =
           !guess && rowIndex === state.guesses.length && !gameOver;
-        const raw = guess ? splitAksharam(guess) : isActiveEntry ? preview : [];
+        const raw = guess ? splitWord(pack, guess) : isActiveEntry ? preview : [];
         const tiles = Array.from(
           { length: WORD_SIZE },
           (_, index) => raw[index] ?? "",
@@ -446,7 +261,7 @@ export default function Home() {
         return {
           tiles,
           result: guess
-            ? evaluateGuess(guess, answer.ml)
+            ? evaluateGuess(pack, guess, answer.word)
             : Array(WORD_SIZE).fill("empty" as TileState),
           phase: guess
             ? rowIndex < settledCount
@@ -455,7 +270,7 @@ export default function Home() {
             : ("idle" as const),
         };
       }),
-    [answer, gameOver, preview, settledCount, state.guesses],
+    [answer.word, gameOver, pack, preview, settledCount, state.guesses],
   );
 
   const later = useCallback((fn: () => void, ms: number) => {
@@ -476,23 +291,26 @@ export default function Home() {
     // Persisted state can only be read after mount; SSR markup must stay
     // deterministic, so this one-time hydration happens in an effect.
     /* eslint-disable react-hooks/set-state-in-effect */
-    const initial = getInitialState(puzzleId);
+    const initial = getInitialState(puzzleId, storageKey);
     setState(initial);
     setSettledCount(initial.guesses.length);
-    setMode(getInitialMode());
+    setPreview([answerTiles[0], ...Array(WORD_SIZE - 1).fill("")]);
+    setMessage("");
+    setCopied(false);
+    setShowResultModal(false);
+    setRevealing(false);
     const savedSound = window.localStorage.getItem(SOUND_KEY) !== "off";
     setSoundOn(savedSound);
     setSfxEnabled(savedSound);
     setHydrated(true);
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [puzzleId]);
+  }, [answerTiles, puzzleId, storageKey]);
 
   useEffect(() => {
     if (hydrated) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      window.localStorage.setItem(MODE_KEY, mode);
+      window.localStorage.setItem(storageKey, JSON.stringify(state));
     }
-  }, [hydrated, mode, state]);
+  }, [hydrated, state, storageKey]);
 
   useEffect(() => {
     if (!showConfetti) return;
@@ -500,11 +318,6 @@ export default function Home() {
     const timeout = window.setTimeout(() => setShowConfetti(false), 3400);
     return () => window.clearTimeout(timeout);
   }, [showConfetti]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setCountdown(getCountdown()), 60_000);
-    return () => window.clearInterval(interval);
-  }, []);
 
   // Desktop-only parallax: the play field leans toward the pointer, which
   // sells the depth of the translateZ-layered panels.
@@ -548,17 +361,6 @@ export default function Home() {
     window.localStorage.setItem(SOUND_KEY, next ? "on" : "off");
     if (next) sfx.key();
     posthog.capture("sound_toggled", { sound_on: next });
-  }
-
-  function updateMode(nextMode: Mode) {
-    setMode(nextMode);
-    setCopied(false);
-    setMessage(
-      nextMode === "learner"
-        ? "Learner mode shows Manglish sounds under each Malayalam aksharam."
-        : "Fluent mode keeps the board compact and Malayalam-first.",
-    );
-    posthog.capture("mode_changed", { mode: nextMode });
   }
 
   // All five reels locked → the check fires after a short beat; unlocking
@@ -606,11 +408,11 @@ export default function Home() {
   function submitWord(word: string) {
     if (inputLocked) return;
 
-    const normalized = splitAksharam(word).join("");
-    const tiles = splitAksharam(normalized);
+    const normalized = splitWord(pack, word).join("");
+    const tiles = splitWord(pack, normalized);
 
     if (tiles.length !== WORD_SIZE) {
-      setMessage(`Enter exactly ${WORD_SIZE} Malayalam aksharams.`);
+      setMessage(`Enter exactly ${WORD_SIZE} ${pack.name} letters.`);
       setShakeRow(true);
       sfx.invalid();
       buzz(60);
@@ -619,7 +421,7 @@ export default function Home() {
     }
 
     const rowIndex = state.guesses.length;
-    const solved = normalized === answer.ml;
+    const solved = normalized === answer.word;
     const finalTry = rowIndex + 1 >= MAX_GUESSES;
     const finished = solved || finalTry;
 
@@ -664,7 +466,7 @@ export default function Home() {
         sfx.win();
         buzz([28, 40, 28, 40, 60]);
         setMessage(
-          `Correct: ${answer.ml} (${answer.manglish}) means "${answer.meaning}".`,
+          `Correct: ${answer.word} (${answer.pronunciation}) means "${answer.meaning}".`,
         );
         later(() => setShowResultModal(true), 1350);
       } else if (finalTry) {
@@ -675,7 +477,7 @@ export default function Home() {
         sfx.lose();
         buzz(90);
         setMessage(
-          `Today's answer was ${answer.ml} (${answer.manglish}), meaning "${answer.meaning}".`,
+          `The answer was ${answer.word} (${answer.pronunciation}), meaning "${answer.meaning}".`,
         );
         later(() => setShowResultModal(true), 750);
       } else {
@@ -686,7 +488,7 @@ export default function Home() {
   }
 
   async function shareResult() {
-    const text = getShareText(state, answer);
+    const text = getShareText(pack, category.label, state, answer);
     try {
       if (navigator.share) {
         await navigator.share({ text, title: "Chathuraksharam" });
@@ -703,8 +505,22 @@ export default function Home() {
     }
   }
 
-  function trackWhatsAppReminder() {
-    posthog.capture("whatsapp_reminder_clicked", { puzzle_id: puzzleId });
+  function nextPuzzle() {
+    setShowResultModal(false);
+    setPuzzleId((current) => current + 1);
+  }
+
+  function chooseLanguage(id: string) {
+    setLanguageId(id);
+    setCategoryId("everyday");
+    setPuzzleId(0);
+    setShowStreamMenu(false);
+  }
+
+  function chooseCategory(id: string) {
+    setCategoryId(id);
+    setPuzzleId(0);
+    setShowStreamMenu(false);
   }
 
   return (
@@ -734,7 +550,9 @@ export default function Home() {
           role="dialog"
         >
           <div className="result-card w-full max-w-md p-6">
-            <p className="result-eyebrow">Puzzle #{puzzleId + 1}</p>
+            <p className="result-eyebrow">
+              {pack.nativeName} · {category.icon} {category.label} · Round {puzzleId + 1}
+            </p>
             <h2 className="result-title mt-2 text-3xl" id="result-title">
               {state.solved ? "You got it!" : "Puzzle complete"}
             </h2>
@@ -744,17 +562,14 @@ export default function Home() {
             <div aria-label="Spoiler-free result" className="mt-4 space-y-1 text-xl leading-none">
               {state.guesses.map((guess, index) => (
                 <p key={`${guess}-${index}`}>
-                  {evaluateGuess(guess, answer.ml)
+                  {evaluateGuess(pack, guess, answer.word)
                     .map((tile) => tile === "correct" ? "🟩" : tile === "present" ? "🟨" : "⬛")
                     .join("")}
                 </p>
               ))}
             </div>
             <p className="result-meaning mt-3 text-base leading-7">
-              <strong>{answer.ml}</strong> ({answer.manglish}) means “{answer.meaning}”.
-            </p>
-            <p className="result-countdown mt-3 text-sm">
-              Next puzzle in {countdown}
+              <strong>{answer.word}</strong> ({answer.pronunciation}) means “{answer.meaning}”.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
@@ -772,28 +587,70 @@ export default function Home() {
                 {copied ? "Copied" : "Share result"}
               </button>
             </div>
-            <a
+            <button
               className="btn-outline mt-3 block w-full px-5 py-3 text-center"
-              href={WHATSAPP_CHANNEL_URL}
-              onClick={trackWhatsAppReminder}
-              rel="noopener noreferrer"
-              target="_blank"
+              onClick={nextPuzzle}
+              type="button"
             >
-              💬 Remind me on WhatsApp
-            </a>
+              Next {category.icon} {category.label} puzzle →
+            </button>
           </div>
         </div>
       ) : null}
       <section className="site-shell mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-8 lg:px-10">
-        <header className="game-header flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <header className="game-header flex items-center justify-between gap-3 pb-3">
           <div className="title-block flex items-center gap-3">
             <div>
               <h1 className="game-title">Chathuraksharam</h1>
-              <p className="game-title-ml" aria-hidden="true">ചതുരക്ഷരം</p>
             </div>
-            <p className="game-chip">#{puzzleId + 1} · 5×5</p>
+            <p className="game-chip">#{puzzleId + 1}</p>
           </div>
           <div className="header-controls flex items-center gap-3">
+            <div className="stream-menu-wrap">
+              <button
+                aria-expanded={showStreamMenu}
+                aria-haspopup="menu"
+                className={`stream-trigger ${showStreamMenu ? "active" : ""}`}
+                onClick={() => setShowStreamMenu((open) => !open)}
+                type="button"
+              >
+                <span>{pack.nativeName}</span>
+                <b>{category.icon} {category.label}</b>
+                <i aria-hidden="true">⌄</i>
+              </button>
+              {showStreamMenu ? (
+                <div aria-label="Choose language and category" className="stream-menu" role="menu">
+                  <span className="stream-menu-label">Language</span>
+                  <div className="stream-menu-grid languages">
+                    {LANGUAGE_PACKS.map((language) => (
+                      <button
+                        aria-pressed={language.id === pack.id}
+                        className={language.id === pack.id ? "active" : ""}
+                        key={language.id}
+                        onClick={() => chooseLanguage(language.id)}
+                        type="button"
+                      >
+                        {language.nativeName}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="stream-menu-label">Category</span>
+                  <div className="stream-menu-grid categories">
+                    {pack.categories.map((item) => (
+                      <button
+                        aria-pressed={item.id === category.id}
+                        className={item.id === category.id ? "active" : ""}
+                        key={item.id}
+                        onClick={() => chooseCategory(item.id)}
+                        type="button"
+                      >
+                        {item.icon} {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
             <button
               aria-label={soundOn ? "Mute sounds" : "Unmute sounds"}
               aria-pressed={soundOn}
@@ -803,35 +660,20 @@ export default function Home() {
             >
               {soundOn ? "🔊" : "🔇"}
             </button>
-            <div className="mode-switch" aria-label="Choose play mode">
-              <button
-                className={mode === "fluent" ? "active" : ""}
-                onClick={() => updateMode("fluent")}
-                type="button"
-              >
-                I know Malayalam
-              </button>
-              <button
-                className={mode === "learner" ? "active" : ""}
-                onClick={() => updateMode("learner")}
-                type="button"
-              >
-                I am learning Malayalam
-              </button>
-            </div>
           </div>
         </header>
 
-        <div className="game-layout grid flex-1 items-start justify-center gap-8 py-6 lg:grid-cols-[minmax(0,620px)_300px]">
+        <div className="game-layout grid flex-1 items-start justify-center py-6">
           <div className="tilt-stage" ref={stageRef}>
             <section
-              aria-label="Malayalam word puzzle"
+              aria-label={`${pack.name} ${category.label} word puzzle`}
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
               <WordDrum
                 activeRow={activeRow}
                 hint={answer.clue}
-                mode={mode}
+                hintLabel={pack.hintLabel}
+                key={`drum-${pack.id}-${category.id}-${puzzleId}`}
                 rows={drumRows}
                 shakeRow={shakeRow}
                 soundFor={getSound}
@@ -843,11 +685,11 @@ export default function Home() {
               </p>
 
               <SlotMachine
-                dictionary={GUESS_WORD_TILES}
+                dictionary={guessWordTiles}
                 disabled={inputLocked}
                 keyboardState={keyboardState}
+                key={`machine-${pack.id}-${category.id}-${puzzleId}`}
                 keys={allKeys}
-                learner={isLearner}
                 onChange={handleMachineChange}
                 presetLetter={answerTiles[0]}
                 roundKey={state.guesses.length}
@@ -855,7 +697,7 @@ export default function Home() {
               />
 
               {roundOver ? (
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 grid grid-cols-2 gap-3">
                   <button
                     className="btn-primary px-6 py-3 text-sm uppercase tracking-[0.14em]"
                     onClick={shareResult}
@@ -863,86 +705,18 @@ export default function Home() {
                   >
                     {copied ? "Copied" : "Share result"}
                   </button>
+                  <button
+                    className="btn-outline px-6 py-3 text-sm uppercase tracking-[0.14em]"
+                    onClick={nextPuzzle}
+                    type="button"
+                  >
+                    Next puzzle →
+                  </button>
                 </div>
               ) : null}
             </section>
           </div>
 
-          <aside className="space-y-5">
-            <div className="depth-panel p-5">
-              <p className="intro-eyebrow">Puzzle #{puzzleId + 1}</p>
-              <p className="intro-copy mt-2">
-                Guess the five-aksharam Malayalam word in five tries. Pull
-                the lever to spin letters, or pick each letter yourself.
-                Lock the ones you want — lock all five and the word is
-                checked.
-              </p>
-              {isLearner ? (
-                <p className="sound-note">
-                  Small text under each Malayalam letter shows its Manglish
-                  sound.
-                </p>
-              ) : null}
-            </div>
-
-            <div className="help-card depth-panel p-5">
-              <h2 className="panel-heading">How to play</h2>
-              <p className="panel-copy mt-2">
-                Find today&apos;s five-aksharam Malayalam word. The hinted
-                first letter starts locked in for you. Pull the lever and the
-                reels spin, or set a reel yourself — tap it to pick its
-                letter from a keyboard, or drag it like a dial. The lever
-                always lands on a real Malayalam word that fits your locked
-                letters when one exists. Use the padlock above a reel to
-                lock its letter in; when all five are locked, the word is
-                checked. Green means the aksharam is in the right spot, gold
-                means it is in the word, and dark means it is not used.
-                Guess in five tries.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <div className="stat">
-                <strong>{state.played}</strong>
-                <span>Played</span>
-              </div>
-              <div className="stat">
-                <strong>{winRate}%</strong>
-                <span>Win rate</span>
-              </div>
-              <div className="stat">
-                <strong>{state.streak}</strong>
-                <span>Streak</span>
-              </div>
-            </div>
-
-            {isLearner ? (
-              <div className="depth-panel p-5">
-                <h2 className="panel-heading">Learner lookup</h2>
-                <p className="panel-copy mt-2">
-                  Search an English meaning or Manglish sound from the word
-                  bank.
-                </p>
-                <input
-                  aria-label="Search English or Manglish"
-                  className="lookup-input mt-3 w-full px-3 py-2 text-sm"
-                  onChange={(event) => setLookup(event.target.value)}
-                  placeholder="Try: flowers, waves, nilavu"
-                  value={lookup}
-                />
-                <div className="lookup-list">
-                  {lookupResults.map((word) => (
-                    <div className="lookup-item" key={word.ml}>
-                      <strong>{word.meaning}</strong>
-                      <span>{word.manglish}</span>
-                      <b>{word.ml}</b>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-          </aside>
         </div>
       </section>
     </main>

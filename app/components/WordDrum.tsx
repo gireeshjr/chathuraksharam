@@ -11,8 +11,6 @@ import {
 
 export type TileState = "correct" | "present" | "absent" | "empty";
 export type TilePhase = "idle" | "reveal" | "settled";
-export type Mode = "fluent" | "learner";
-
 export type DrumRow = {
   tiles: string[];
   result: TileState[];
@@ -60,23 +58,16 @@ function FitSymbol({ tile }: { tile: string }) {
 
 function TileFace({
   tile,
-  mode,
-  soundFor,
   className,
 }: {
   tile: string;
-  mode: Mode;
-  soundFor: (tile: string) => string;
   className: string;
 }) {
   return (
-    <div className={`tile-face ${className} ${mode === "learner" ? "learner" : ""}`}>
+    <div className={`tile-face ${className}`}>
       {tile ? (
         <span className="tile-pop" key={tile}>
           <FitSymbol tile={tile} />
-          {mode === "learner" ? (
-            <span className="tile-sound">{soundFor(tile)}</span>
-          ) : null}
         </span>
       ) : null}
     </div>
@@ -86,14 +77,12 @@ function TileFace({
 function Tile({
   tile,
   status,
-  mode,
   phase,
   index,
   soundFor,
 }: {
   tile: string;
   status: TileState;
-  mode: Mode;
   phase: TilePhase;
   index: number;
   soundFor: (tile: string) => string;
@@ -110,18 +99,9 @@ function Tile({
       style={{ "--i": index } as CSSProperties}
     >
       <div className="tile3d-inner">
-        <TileFace className="tile-front" mode={mode} soundFor={soundFor} tile={tile} />
-        <div
-          className={`tile-face tile-back ${status} ${mode === "learner" ? "learner" : ""}`}
-        >
-          {tile ? (
-            <>
-              <FitSymbol tile={tile} />
-              {mode === "learner" ? (
-                <span className="tile-sound">{soundFor(tile)}</span>
-              ) : null}
-            </>
-          ) : null}
+        <TileFace className="tile-front" tile={tile} />
+        <div className={`tile-face tile-back ${status}`}>
+          {tile ? <FitSymbol tile={tile} /> : null}
         </div>
       </div>
     </div>
@@ -136,18 +116,18 @@ export default function WordDrum({
   activeRow,
   winWaveRow,
   shakeRow,
-  mode,
   soundFor,
   hint,
+  hintLabel = "Today's hint",
 }: {
   rows: DrumRow[];
   activeRow: number;
   winWaveRow: number | null;
   shakeRow: boolean;
-  mode: Mode;
   soundFor: (tile: string) => string;
   /** Meaning clue shown as a tag hanging under the drum. */
   hint?: string;
+  hintLabel?: string;
 }) {
   const [viewIndex, setViewIndex] = useState(activeRow);
   const [dragging, setDragging] = useState(false);
@@ -238,7 +218,6 @@ export default function WordDrum({
                   <Tile
                     index={tileIndex}
                     key={`${rowIndex}-${tileIndex}`}
-                    mode={mode}
                     phase={row.phase}
                     soundFor={soundFor}
                     status={row.result[tileIndex]}
@@ -269,7 +248,7 @@ export default function WordDrum({
       </div>
       {hint ? (
         <p className="drum-hint">
-          <strong>Today&apos;s hint:</strong> {hint}
+          <strong>{hintLabel}:</strong> {hint}
         </p>
       ) : null}
     </div>

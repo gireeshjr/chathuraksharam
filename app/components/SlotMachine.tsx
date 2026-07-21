@@ -133,10 +133,8 @@ function LockIcon({ open }: { open: boolean }) {
 // change from reconciling thousands of spans, which visibly froze mobile.
 const ReelStripItems = memo(function ReelStripItems({
   reelSeq,
-  learner,
 }: {
   reelSeq: KeyDef[];
-  learner: boolean;
 }) {
   return (
     <>
@@ -144,13 +142,10 @@ const ReelStripItems = memo(function ReelStripItems({
         reelSeq.map((item, idx) => (
           <span
             aria-hidden={copy > 0}
-            className={`reel-item ${learner ? "learner" : ""}`}
+            className="reel-item"
             key={`${copy}-${idx}`}
           >
             <span className="reel-symbol">{item.ml}</span>
-            {learner ? (
-              <span className="reel-sound">{item.sound}</span>
-            ) : null}
           </span>
         )),
       )}
@@ -161,7 +156,6 @@ const ReelStripItems = memo(function ReelStripItems({
 export default function SlotMachine({
   keys,
   keyboardState,
-  learner,
   disabled,
   roundKey,
   presetLetter,
@@ -171,7 +165,6 @@ export default function SlotMachine({
 }: {
   keys: ReadonlyArray<KeyDef>;
   keyboardState: Map<string, TileState>;
-  learner: boolean;
   disabled: boolean;
   roundKey: number;
   /** The hinted first aksharam: reel 1 starts on it, pre-locked. */
@@ -685,7 +678,7 @@ export default function SlotMachine({
                         } as CSSProperties
                       }
                     >
-                      <ReelStripItems learner={learner} reelSeq={reelSeq} />
+                      <ReelStripItems reelSeq={reelSeq} />
                     </div>
                     <div aria-hidden="true" className="reel-shade" />
                   </div>
@@ -756,9 +749,6 @@ export default function SlotMachine({
                   type="button"
                 >
                   <span className="picker-symbol">{key.ml}</span>
-                  {learner ? (
-                    <span className="picker-sound">{key.sound}</span>
-                  ) : null}
                 </button>
               );
             })}

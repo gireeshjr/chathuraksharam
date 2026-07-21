@@ -1,0 +1,44 @@
+{
+  "id": "es",
+  "name": "Spanish",
+  "nativeName": "Español",
+  "locale": "es",
+  "direction": "ltr",
+  "wordSize": 5,
+  "hintLabel": "Pista",
+  "keys": "abcdefghijklmnñopqrstuvwxyzáéíóúü",
+  "categories": [
+    {
+      "id": "everyday",
+      "label": "Diario",
+      "icon": "☀️",
+      "puzzles": [
+        { "word": "plato", "pronunciation": "plato", "meaning": "dish", "clue": "Aquí se sirve la comida en la mesa." },
+        { "word": "queso", "pronunciation": "queso", "meaning": "cheese", "clue": "Alimento hecho con leche, suave o curado." },
+        { "word": "noche", "pronunciation": "noche", "meaning": "night", "clue": "Llega cuando se oculta el sol." }
+      ]
+    },
+    {
+      "id": "arts",
+      "label": "Artes",
+      "icon": "🎨",
+      "provenance": { "model": "gpt-5.6", "generatedAt": "2026-07-20T18:29:41.328Z" },
+      "puzzles": [
+        { "word": "mural", "pronunciation": "/muˈɾal/", "meaning": "wall painting", "clue": "Pintura grande realizada directamente sobre una pared." },
+        { "word": "ópera", "pronunciation": "/ˈopeɾa/", "meaning": "opera", "clue": "Obra escénica en la que los personajes cantan acompañados por una orquesta." },
+        { "word": "museo", "pronunciation": "/muˈseo/", "meaning": "museum", "clue": "Lugar donde se conservan y exhiben obras y objetos de valor cultural." }
+      ]
+    },
+    {
+      "id": "sports",
+      "label": "Deportes",
+      "icon": "🏅",
+      "puzzles": [
+        { "word": "tenis", "pronunciation": "tenis", "meaning": "tennis", "clue": "Deporte de raqueta jugado sobre una red." },
+        { "word": "balón", "pronunciation": "balón", "meaning": "ball", "clue": "Objeto redondo que se patea o se lanza." },
+        { "word": "salto", "pronunciation": "salto", "meaning": "jump", "clue": "Movimiento para despegar los pies del suelo." }
+      ]
+    }
+  ],
+  "dictionary": ["plato", "queso", "noche", "calle", "dulce", "playa", "campo", "libro", "reloj", "fruta", "danza", "ritmo", "verso", "color", "canto", "actor", "poema", "piano", "tinta", "trazo", "tenis", "balón", "salto", "pista", "boxeo", "cesta", "jugar", "ganar", "ronda", "marca", "mural", "ópera", "museo", "baile", "talla", "telar", "barro", "gubia", "buril", "copia", "autor", "guion", "serie", "drama", "circo", "magia", "gesto", "audio", "video", "ícono", "farsa", "letra", "prosa", "cómic", "manga", "banda", "clave", "viola", "tiple", "bombo", "tapiz", "filme", "lápiz"]
+}

@@ -1,0 +1,58 @@
+{
+  "puzzles": [
+    {
+      "word": "mural",
+      "pronunciation": "/muˈɾal/",
+      "meaning": "wall painting",
+      "clue": "Pintura grande realizada directamente sobre una pared."
+    },
+    {
+      "word": "ópera",
+      "pronunciation": "/ˈopeɾa/",
+      "meaning": "opera",
+      "clue": "Obra escénica en la que los personajes cantan acompañados por una orquesta."
+    },
+    {
+      "word": "museo",
+      "pronunciation": "/muˈseo/",
+      "meaning": "museum",
+      "clue": "Lugar donde se conservan y exhiben obras y objetos de valor cultural."
+    }
+  ],
+  "dictionary": [
+    "baile",
+    "talla",
+    "telar",
+    "barro",
+    "gubia",
+    "buril",
+    "copia",
+    "autor",
+    "guion",
+    "serie",
+    "drama",
+    "circo",
+    "magia",
+    "gesto",
+    "audio",
+    "video",
+    "ícono",
+    "farsa",
+    "letra",
+    "prosa",
+    "cómic",
+    "manga",
+    "banda",
+    "clave",
+    "viola",
+    "tiple",
+    "bombo",
+    "tapiz",
+    "filme",
+    "lápiz"
+  ],
+  "generatedBy": "gpt-5.6",
+  "generatedAt": "2026-07-20T18:29:41.328Z",
+  "language": "es",
+  "category": "arts"
+}

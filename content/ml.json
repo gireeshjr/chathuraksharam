@@ -1,0 +1,49 @@
+{
+  "id": "ml",
+  "name": "Malayalam",
+  "nativeName": "മലയാളം",
+  "locale": "ml",
+  "direction": "ltr",
+  "wordSize": 5,
+  "hintLabel": "ഇന്നത്തെ സൂചന",
+  "keys": [
+    { "text": "ക", "sound": "ka" }, { "text": "പു", "sound": "pu" }, { "text": "നി", "sound": "ni" }, { "text": "വു", "sound": "vu" }, { "text": "മ", "sound": "ma" }, { "text": "വ", "sound": "va" }, { "text": "രി", "sound": "ri" },
+    { "text": "ത", "sound": "tha" }, { "text": "ല", "sound": "la" }, { "text": "ര", "sound": "ra" }, { "text": "ങ്ങ", "sound": "nga" }, { "text": "കു", "sound": "ku" }, { "text": "ൻ", "sound": "n" }, { "text": "വി", "sound": "vi" },
+    { "text": "ദി", "sound": "di" }, { "text": "ചു", "sound": "chu" }, { "text": "ഴി", "sound": "zhi" }, { "text": "ണ", "sound": "na" }, { "text": "തു", "sound": "thu" }, { "text": "രു", "sound": "ru" }, { "text": "ലു", "sound": "lu" },
+    { "text": "അ", "sound": "a" }, { "text": "ഗ", "sound": "ga" }, { "text": "ധു", "sound": "dhu" }, { "text": "രം", "sound": "ram" }, { "text": "ന", "sound": "na" }, { "text": "ടു", "sound": "tu" }, { "text": "ളി", "sound": "li" },
+    { "text": "കി", "sound": "ki" }, { "text": "സ്സു", "sound": "ssu" }, { "text": "ൽ", "sound": "l" }, { "text": "റ", "sound": "ra" }, { "text": "ലാ", "sound": "laa" }, { "text": "ഴ", "sound": "zha" }, { "text": "ൾ", "sound": "l" }
+  ],
+  "categories": [
+    {
+      "id": "everyday",
+      "label": "നിത്യജീവിതം",
+      "icon": "☀️",
+      "puzzles": [
+        { "word": "വിരലുകൾ", "pronunciation": "viralukal", "meaning": "fingers", "clue": "എണ്ണാനും തൊടാനും എഴുതാനും ഇവ സഹായിക്കുന്നു." },
+        { "word": "വഴികളിൽ", "pronunciation": "vazhikalil", "meaning": "on paths", "clue": "ആളുകൾ നടക്കുകയും യാത്ര ചെയ്യുകയും ചെയ്യുന്നിടം." },
+        { "word": "അരികുകൾ", "pronunciation": "arikukal", "meaning": "edges", "clue": "ഒരു വസ്തുവിന്റെ വശങ്ങളോ അതിരുകളോ." }
+      ]
+    },
+    {
+      "id": "arts",
+      "label": "കലകൾ",
+      "icon": "🎨",
+      "puzzles": [
+        { "word": "കവിതകൾ", "pronunciation": "kavithakal", "meaning": "poems", "clue": "താളത്തോടെയും ഭാവത്തോടെയും ക്രമപ്പെടുത്തിയ വാക്കുകൾ." },
+        { "word": "നിലാവുകൾ", "pronunciation": "nilavukal", "meaning": "moonlights", "clue": "ചന്ദ്രനിൽ നിന്നുള്ള മൃദുവായ വെളിച്ചം." },
+        { "word": "മധുരങ്ങൾ", "pronunciation": "madhurangal", "meaning": "sweetnesses", "clue": "സുഖകരമായ രുചികളോ മനോഹര നിമിഷങ്ങളോ." }
+      ]
+    },
+    {
+      "id": "sports",
+      "label": "കായികം",
+      "icon": "🏅",
+      "puzzles": [
+        { "word": "ചുവടുകൾ", "pronunciation": "chuvadukal", "meaning": "steps", "clue": "ഓട്ടത്തിലും നൃത്തത്തിലും മുന്നോട്ട് നീക്കുന്ന ചലനങ്ങൾ." },
+        { "word": "തരംഗങ്ങൾ", "pronunciation": "tharangangal", "meaning": "waves", "clue": "നീന്തലിലും ജലകായികത്തിലും ചുറ്റുമുള്ള ജലചലനം." },
+        { "word": "കിരണങ്ങൾ", "pronunciation": "kiranangal", "meaning": "rays", "clue": "പുറത്തുള്ള കളിയെ പ്രകാശിപ്പിക്കുന്ന സൂര്യരേഖകൾ." }
+      ]
+    }
+  ],
+  "dictionary": ["കവിതകൾ", "പുലരികൾ", "കനിവുകൾ", "കിരണങ്ങൾ", "മനസ്സുകൾ", "ദിനകരൻ", "മരങ്ങളിൽ", "വഴികളിൽ", "നഗരങ്ങൾ", "വിരലുകൾ", "മലരുകൾ", "നിറവുകൾ", "നിലാവുകൾ", "അരികുകൾ", "പുതുമകൾ", "തണലുകൾ", "മധുരങ്ങൾ", "നിഴലുകൾ", "തരംഗങ്ങൾ", "ചുവടുകൾ", "വരവുകൾ", "കനവുകൾ", "നിനവുകൾ", "കുരുവികൾ", "കതകുകൾ", "പുഴകളിൽ", "തളിരുകൾ", "അലകളിൽ", "കനലുകൾ", "നദികളിൽ", "വരികളിൽ", "കനികളിൽ", "കരകളിൽ", "ചുവരുകൾ", "ചുമടുകൾ", "അകലങ്ങൾ", "അരുവികൾ", "നിലങ്ങളിൽ", "ഗണങ്ങളിൽ", "നടുവിരൽ", "അണകളിൽ", "ദിനങ്ങളിൽ", "കരിമണൽ", "കരിനിഴൽ", "അരണകൾ", "മറകളിൽ", "തറകളിൽ", "നിരകളിൽ", "വിലകളിൽ", "കലകളിൽ", "കുറവുകൾ", "ചുഴികളിൽ", "വരകളിൽ", "പുരങ്ങളിൽ", "പുരികങ്ങൾ", "മലകളിൽ", "മരങ്ങളിൻ", "കിളികളിൽ"]
+}

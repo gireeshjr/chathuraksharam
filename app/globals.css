@@ -150,31 +150,102 @@ button {
   transform: translateY(-2px);
 }
 
-.mode-switch {
+.stream-menu-wrap {
+  position: relative;
+}
+
+.stream-trigger {
+  align-items: center;
   background: var(--glass);
-  border: 1px solid var(--glass-border-dim);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   display: grid;
-  gap: 4px;
-  grid-template-columns: 1fr;
-  padding: 4px;
+  gap: 1px 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 44px;
+  padding: 6px 10px 6px 12px;
+  text-align: left;
 }
 
-.mode-switch button {
-  background: transparent;
-  border: 0;
-  border-radius: 9px;
-  color: var(--ink-dim);
-  font-size: 0.82rem;
+.stream-trigger span,
+.stream-trigger b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stream-trigger span {
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.stream-trigger b {
+  color: var(--gold-bright);
+  font-size: 0.64rem;
   font-weight: 800;
-  min-height: 38px;
-  padding: 8px 12px;
-  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
-.mode-switch button.active {
+.stream-trigger i {
+  color: var(--ink-dim);
+  font-size: 1rem;
+  font-style: normal;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.stream-trigger:hover,
+.stream-trigger.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(224, 170, 75, 0.2);
+}
+
+.stream-menu {
+  background: linear-gradient(160deg, rgba(16, 40, 29, 0.99), rgba(6, 20, 14, 0.99));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(320px, calc(100vw - 24px));
+  z-index: 40;
+}
+
+.stream-menu-label {
+  color: var(--ink-faint);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.stream-menu-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stream-menu-grid button {
+  background: var(--glass);
+  border: 1px solid var(--glass-border-dim);
+  border-radius: 10px;
+  color: var(--ink-dim);
+  font-size: 0.7rem;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 6px 8px;
+}
+
+.stream-menu-grid button.active {
   background: linear-gradient(180deg, var(--emerald), var(--emerald-deep));
-  box-shadow: 0 2px 10px rgba(31, 180, 125, 0.35);
+  border-color: rgba(103, 231, 176, 0.45);
+  box-shadow: 0 3px 12px rgba(31, 180, 125, 0.3);
   color: #f4fbf5;
 }
 
@@ -1323,12 +1394,6 @@ button {
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
 
-@media (min-width: 640px) {
-  .mode-switch {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 639px) {
   .site-shell {
     min-height: auto;
@@ -1342,12 +1407,11 @@ button {
 
   .title-block {
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
+    min-width: 0;
   }
 
   .game-title {
-    font-size: 1.7rem;
+    font-size: clamp(1.25rem, 5vw, 1.7rem);
   }
 
   .game-title-ml {
@@ -1360,7 +1424,8 @@ button {
   }
 
   .header-controls {
-    width: 100%;
+    flex-shrink: 0;
+    gap: 7px;
   }
 
   .sound-toggle {
@@ -1369,16 +1434,18 @@ button {
     width: 38px;
   }
 
-  .mode-switch {
-    flex: 1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .stream-trigger {
+    min-height: 38px;
+    max-width: 140px;
+    padding-block: 4px;
   }
 
-  .mode-switch button {
-    font-size: 0.7rem;
-    line-height: 1.1;
-    min-height: 34px;
-    padding: 6px 7px;
+  .stream-trigger span {
+    font-size: 0.68rem;
+  }
+
+  .stream-trigger b {
+    font-size: 0.58rem;
   }
 
   .game-layout {

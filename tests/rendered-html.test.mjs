@@ -32,17 +32,17 @@ test("server-renders the Chathuraksharam page", async () => {
     assert.match(html, /<html lang="ml"/i);
     assert.match(html, /<title>Chathuraksharam<\/title>/i);
     assert.match(html, /Chathuraksharam/);
-    assert.match(html, /5×5/);
-    assert.match(html, /five tries/);
+    assert.match(html, /മലയാളം/);
+    assert.match(html, /നിത്യജീവിതം/);
+    assert.match(html, /class="stream-trigger/);
+    assert.match(html, /aria-haspopup="menu"/);
     assert.match(html, /Malayalam letter reels/);
     assert.match(html, /Pull the lever/);
     // Every keyboard aksharam must appear on the reels (spot-check a few).
     assert.match(html, /വു/);
     assert.match(html, /ങ്ങ/);
     assert.match(html, /സ്സു/);
-    assert.match(html, /I am learning Malayalam/);
-    assert.match(html, /Learner lookup/);
-    assert.match(html, /Manglish sound/);
+    assert.doesNotMatch(html, /How to play|Learner lookup|learning Malayalam|Manglish sound/);
     assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Starter Project/i);
   } finally {
     server.kill("SIGTERM");

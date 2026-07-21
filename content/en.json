@@ -1,0 +1,43 @@
+{
+  "id": "en",
+  "name": "English",
+  "nativeName": "English",
+  "locale": "en",
+  "direction": "ltr",
+  "wordSize": 5,
+  "hintLabel": "Today's hint",
+  "keys": "abcdefghijklmnopqrstuvwxyz",
+  "categories": [
+    {
+      "id": "everyday",
+      "label": "Everyday",
+      "icon": "☀️",
+      "puzzles": [
+        { "word": "apple", "pronunciation": "apple", "meaning": "a crisp fruit", "clue": "A fruit that can be red, green, or gold." },
+        { "word": "bread", "pronunciation": "bread", "meaning": "a baked staple", "clue": "A loaf sliced for toast or sandwiches." },
+        { "word": "chair", "pronunciation": "chair", "meaning": "a seat", "clue": "Furniture made for one person to sit on." }
+      ]
+    },
+    {
+      "id": "arts",
+      "label": "Arts",
+      "icon": "🎨",
+      "puzzles": [
+        { "word": "music", "pronunciation": "music", "meaning": "organized sound", "clue": "Melody, harmony, and rhythm together." },
+        { "word": "dance", "pronunciation": "dance", "meaning": "movement to rhythm", "clue": "An art made by moving the body." },
+        { "word": "paint", "pronunciation": "paint", "meaning": "colored pigment", "clue": "An artist brushes this onto a canvas." }
+      ]
+    },
+    {
+      "id": "sports",
+      "label": "Sports",
+      "icon": "🏅",
+      "puzzles": [
+        { "word": "score", "pronunciation": "score", "meaning": "points earned", "clue": "The number that shows who is winning." },
+        { "word": "coach", "pronunciation": "coach", "meaning": "a team trainer", "clue": "This person guides players from the sideline." },
+        { "word": "medal", "pronunciation": "medal", "meaning": "an award", "clue": "A champion may wear this around the neck." }
+      ]
+    }
+  ],
+  "dictionary": ["apple", "bread", "chair", "house", "water", "plant", "river", "light", "smile", "world", "music", "dance", "paint", "drama", "flute", "voice", "stage", "story", "poems", "color", "score", "coach", "medal", "track", "skate", "sport", "match", "racer", "teams", "field"]
+}

@@ -1,29 +1,66 @@
-# Chathuraksharam — ചതുരക്ഷരം
+# Chathuraksharam — words without borders
 
-A daily Malayalam word puzzle, reimagined as a 3D slot machine. Guess the
-five-aksharam word of the day in five tries: pull the lever and the letter
-reels land on a real Malayalam word that fits your locked letters, or dial
-each reel by hand like a combination lock. Lock all five and the word is
-checked — green for right spot, gold for in the word, dark for not used.
+Chathuraksharam is a multilingual word game built around a tactile 3D slot
+machine. Pull the lever to land on a real word, lock useful letters, and solve
+the five-tile answer in five tries.
 
-Built for Malayalam speakers and learners alike: learner mode shows Manglish
-sounds under every aksharam, and a lookup panel maps English meanings to the
-word bank.
+The current demo supports Malayalam, English, and Spanish. Each language has
+Everyday, Arts, and Sports streams, and completing a round immediately opens
+the next puzzle instead of imposing a once-per-day limit.
 
-## Features
+## What makes it different
 
-- **Slot-machine input** — a pullable lever with weighted reels, plus a
-  per-reel keyboard picker and drag-dialing with snap-to-letter
-- **Dictionary pulls** — the lever always lands on a real Malayalam word
-  matching your locked letters when one exists
-- **3D word drum** — one guess per face of a rolling pentagonal barrel,
-  with staggered tile-flip reveals
-- **Kerala-night design** — glassmorphism, brass-gold accents, and
-  pointer-driven parallax
-- **Juice** — WebAudio synth sounds (mutable), haptics, confetti, streaks,
-  share cards, and daily reminders via a WhatsApp channel
-- Daily puzzle anchored to the UTC day, so the whole world plays the same
-  word; state persists in `localStorage`
+- **Language packs** define locale-aware grapheme segmentation, playable
+  letters, localized category names, clues, and reusable puzzle dictionaries.
+- **GPT-5.6 puzzle authoring** creates structured candidate packs outside the
+  request path. Candidates are written only after deterministic validation.
+- **Shared, dependable gameplay** serves reviewed JSON to every player—no
+  model latency, API key, database, or generated surprise during a round.
+- **Dictionary-aware reels** always prefer a real word that matches the
+  player’s locked letters.
+- **Accessible direct input** lets a player tap a reel to choose a letter or
+  drag it like a combination dial.
+
+## Architecture
+
+Language and puzzle packs live in [`content/`](content/). Every pack declares:
+
+- language, locale, direction, and fixed tile count;
+- the playable keyboard/reel alphabet;
+- localized category streams and puzzle clues;
+- a shared dictionary used by the slot-machine landing algorithm.
+
+`app/lib/content.ts` normalizes and validates all packs at build time. The
+standalone content validator repeats those checks in CI and catches:
+
+- words with the wrong number of Unicode grapheme clusters;
+- words containing tiles absent from the language keyboard;
+- missing puzzle fields.
+
+## GPT-5.6 puzzle generation
+
+Set an OpenAI API key in `.env.local` (which is gitignored) and generate a
+candidate pack:
+
+```dotenv
+OPENAI_API_KEY=your_key
+```
+
+```bash
+npm run generate:puzzles -- --language=es --category=arts --count=6
+```
+
+The authoring command calls the OpenAI Responses API with `gpt-5.6` and a
+strict JSON schema. It then independently validates every generated word
+against `Intl.Segmenter`, the language’s word size, and its playable alphabet.
+Valid output is written under `content/generated/` for review; it is never
+silently published into the game.
+
+The Spanish Arts stream includes a reviewed GPT-5.6 generation from July 20,
+2026 (`mural`, `ópera`, and `museo`) with provenance recorded in the pack.
+
+This authoring-time workflow provides one culturally relevant pack for all
+players while keeping gameplay fast, consistent, safe, and inexpensive.
 
 ## Development
 
@@ -31,19 +68,21 @@ Requires Node.js `>=20.9`.
 
 ```bash
 npm install
-npm run dev     # http://localhost:3000
+npm run dev
+npm run validate:content
 npm run lint
-npm test        # builds, boots the production server, asserts the SSR HTML
+npm test
 ```
 
 ## Deploying
 
-A standard Next.js app — deploy to [Vercel](https://vercel.com) by importing
-this repository; no configuration needed.
+Deploy the Next.js app to Vercel or any Node-compatible platform. The playable
+demo does not require runtime secrets or storage. `OPENAI_API_KEY` is needed
+only by the optional authoring command and must never be exposed to the client.
 
-## Word bank
+## Built with Codex
 
-Answers and the guess dictionary live in `app/page.tsx` (`WORDS` and
-`EXTRA_GUESS_WORDS`). A build-time check fails the build if any entry is not
-exactly five aksharams typeable on the on-screen keys, so new words are safe
-to add freely.
+Codex was used throughout product discovery, architectural refactoring,
+language-pack design, validation, responsive browser testing, and documentation.
+The repository history and supplied Codex session show the move from a single
+Malayalam daily puzzle to an extensible multilingual category engine.
