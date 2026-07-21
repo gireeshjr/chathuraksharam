@@ -1,4 +1,5 @@
 import englishJson from "../../content/en.json";
+import hindiJson from "../../content/hi.json";
 import malayalamJson from "../../content/ml.json";
 import spanishJson from "../../content/es.json";
 
@@ -79,6 +80,7 @@ export const LANGUAGE_PACKS = [
   normalizePack(malayalamJson as RawPack),
   normalizePack(englishJson as RawPack),
   normalizePack(spanishJson as RawPack),
+  normalizePack(hindiJson as RawPack),
 ];
 
 export function splitWord(pack: LanguagePack, word: string) {

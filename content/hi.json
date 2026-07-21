@@ -1,0 +1,60 @@
+{
+  "id": "hi",
+  "name": "Hindi",
+  "nativeName": "हिन्दी",
+  "title": "Chathuraksharam — शब्द पहेली",
+  "locale": "hi",
+  "direction": "ltr",
+  "wordSize": 5,
+  "hintLabel": "आज का संकेत",
+  "guide": { "lock": "एक अक्षर सुरक्षित रखें", "pick": "चुनने के लिए टैप करें" },
+  "keys": [
+    { "text": "खू", "sound": "khoo" }, { "text": "ब", "sound": "ba" }, { "text": "सू", "sound": "soo" }, { "text": "र", "sound": "ra" }, { "text": "त", "sound": "ta" },
+    { "text": "ई", "sound": "ee" }, { "text": "मा", "sound": "maa" }, { "text": "न", "sound": "na" }, { "text": "दा", "sound": "daa" }, { "text": "स", "sound": "sa" },
+    { "text": "म", "sound": "ma" }, { "text": "झ", "sound": "jha" }, { "text": "ग", "sound": "ga" }, { "text": "च्छ", "sound": "chchha" }, { "text": "ज", "sound": "ja" },
+    { "text": "मु", "sound": "mu" }, { "text": "खी", "sound": "khee" }, { "text": "सं", "sound": "sang" }, { "text": "गी", "sound": "gee" }, { "text": "का", "sound": "kaa" },
+    { "text": "च", "sound": "cha" }, { "text": "ना", "sound": "naa" }, { "text": "प", "sound": "pa" }, { "text": "ह", "sound": "ha" }, { "text": "ल", "sound": "la" },
+    { "text": "वा", "sound": "vaa" }, { "text": "घु", "sound": "ghu" }, { "text": "ड़", "sound": "da" }, { "text": "री", "sound": "ree" }, { "text": "बै", "sound": "bai" },
+    { "text": "ड", "sound": "da" }, { "text": "मिं", "sound": "min" }, { "text": "ट", "sound": "ta" }, { "text": "बा", "sound": "baa" }, { "text": "स्के", "sound": "ske" },
+    { "text": "बॉ", "sound": "bo" }, { "text": "तं", "sound": "tang" }, { "text": "जी", "sound": "jee" }, { "text": "तै", "sound": "tai" }, { "text": "रा", "sound": "raa" },
+    { "text": "की", "sound": "kee" }, { "text": "ला", "sound": "laa" }, { "text": "दु", "sound": "du" }, { "text": "सो", "sound": "so" }, { "text": "घ", "sound": "gha" },
+    { "text": "मे", "sound": "me" }, { "text": "नी", "sound": "nee" }, { "text": "कु", "sound": "ku" }
+  ],
+  "categories": [
+    {
+      "id": "everyday",
+      "label": "रोज़मर्रा",
+      "icon": "☀️",
+      "puzzles": [
+        { "word": "खूबसूरत", "pronunciation": "khoobsoorat", "meaning": "beautiful", "clue": "जिसे देखकर मन प्रसन्न हो जाए।" },
+        { "word": "ईमानदार", "pronunciation": "eemaanadaar", "meaning": "honest", "clue": "जो सच बोले और छल न करे।" },
+        { "word": "दुकानदार", "pronunciation": "dukaanadaar", "meaning": "shopkeeper", "clue": "जो दुकान में सामान बेचता है।" }
+      ]
+    },
+    {
+      "id": "arts",
+      "label": "कला",
+      "icon": "🎨",
+      "puzzles": [
+        { "word": "संगीतकार", "pronunciation": "sangeetakaar", "meaning": "musician", "clue": "जो धुनों और सुरों की रचना करता है।" },
+        { "word": "रचनाकार", "pronunciation": "rachanaakaar", "meaning": "creator", "clue": "कहानी, कविता या कला की कृति बनाने वाला।" },
+        { "word": "सूरजमुखी", "pronunciation": "soorajmukhee", "meaning": "sunflower", "clue": "सूरज की ओर मुख करने वाला पीला फूल।" }
+      ]
+    },
+    {
+      "id": "sports",
+      "label": "खेल",
+      "icon": "🏅",
+      "puzzles": [
+        { "word": "पहलवान", "pronunciation": "pahalavaan", "meaning": "wrestler", "clue": "अखाड़े में कुश्ती लड़ने वाला खिलाड़ी।" },
+        { "word": "बैडमिंटन", "pronunciation": "badminton", "meaning": "badminton", "clue": "रैकेट और शटलकॉक से खेला जाने वाला खेल।" },
+        { "word": "पतंगबाजी", "pronunciation": "patangabaajee", "meaning": "kite flying", "clue": "डोर से आसमान में रंगीन पतंग उड़ाने का खेल।" }
+      ]
+    }
+  ],
+  "dictionary": [
+    "खूबसूरत", "ईमानदार", "समझदार", "मगरमच्छ", "सूरजमुखी", "संगीतकार",
+    "रचनाकार", "पहलवान", "घुड़सवारी", "बैडमिंटन", "बास्केटबॉल", "पतंगबाजी",
+    "तैराकीवाला", "दुकानदार", "रसोईघर", "मेहरबानी", "राजकुमार", "राजकुमारी"
+  ]
+}
