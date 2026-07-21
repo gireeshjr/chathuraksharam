@@ -30,3 +30,10 @@ yarn-error.log*
 next-env.d.ts
 *.tsbuildinfo
 .env.local
+
+# Local submission-video renders and captures
+submission/video/frames/
+submission/video/qa/
+submission/video/*.aiff
+submission/video/*.mp3
+submission/video/*.mp4

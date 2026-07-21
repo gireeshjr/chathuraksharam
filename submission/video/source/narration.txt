@@ -1,0 +1,19 @@
+Chathuraksharam is a tactile word game where every language gets its own playable alphabet.
+
+Most word games begin with English and treat every other script as a translation. I started with Malayalam because I wanted the language itself to shape the interaction. The result is a five-reel word machine built around pulling, locking, and discovering letters.
+
+Each round gives the player a localized clue and five attempts. The first letter is revealed. Pulling the lever spins the remaining reels, but the result is not meaningless randomness: the game prefers a real dictionary word that matches every letter the player has locked.
+
+Players can keep useful letters with the padlocks. They can also tap any reel to open a direct letter picker, or drag the reel like a combination dial. This keeps the game approachable without filling the screen with instructions.
+
+Language and category live in one compact control. The current demo supports English, Malayalam, and Spanish, with Everyday, Arts, and Sports streams. A completed round immediately opens the next puzzle, so play is not limited to one word per day.
+
+Here is the same machine in Malayalam. The interface, clues, alphabet, and word validation all come from the language pack rather than from hard-coded English assumptions.
+
+And here is Spanish Arts. I can assemble mural directly, lock the reels, and submit a valid answer.
+
+GPT five point six expands the content library outside the gameplay request path. It creates culturally natural puzzle candidates through the OpenAI Responses API and a strict JSON schema. Each candidate then passes independent Unicode grapheme validation, playable-alphabet checks, duplicate detection, and human review. Players receive one fast, dependable pack with no model latency or runtime API key.
+
+Codex was my product and engineering collaborator throughout Build Week. It helped turn one Malayalam daily puzzle into a reusable multilingual engine, integrate structured generation, write regression tests, and drive the actual game in a browser. Together we diagnosed script-specific reel sizing, alphabet cycles, mobile pointer gestures, and state that failed only after a second attempt.
+
+Chathuraksharam now has three languages, three category streams, and unlimited rounds. Next, I want native-reviewed packs for more languages and rotating streams for local culture and current events: words without borders.

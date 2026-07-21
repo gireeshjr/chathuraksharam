@@ -86,3 +86,7 @@ Codex was used throughout product discovery, architectural refactoring,
 language-pack design, validation, responsive browser testing, and documentation.
 The repository history and supplied Codex session show the move from a single
 Malayalam daily puzzle to an extensible multilingual category engine.
+
+## License
+
+Chathuraksharam is available under the [MIT License](LICENSE).
