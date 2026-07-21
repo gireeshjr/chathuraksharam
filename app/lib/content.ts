@@ -20,10 +20,15 @@ export type LanguagePack = {
   id: string;
   name: string;
   nativeName: string;
+  title: string;
   locale: string;
   direction: "ltr" | "rtl";
   wordSize: number;
   hintLabel: string;
+  guide: {
+    lock: string;
+    pick: string;
+  };
   keys: KeyDefinition[];
   categories: Category[];
   dictionary: string[];

@@ -2,10 +2,12 @@
   "id": "en",
   "name": "English",
   "nativeName": "English",
+  "title": "Chathuraksharam — Word Square",
   "locale": "en",
   "direction": "ltr",
   "wordSize": 5,
   "hintLabel": "Today's hint",
+  "guide": { "lock": "Keep a letter", "pick": "Tap to choose" },
   "keys": "abcdefghijklmnopqrstuvwxyz",
   "categories": [
     {

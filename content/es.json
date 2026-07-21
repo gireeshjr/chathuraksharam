@@ -2,10 +2,12 @@
   "id": "es",
   "name": "Spanish",
   "nativeName": "Español",
+  "title": "Chathuraksharam — Juego de Palabras",
   "locale": "es",
   "direction": "ltr",
   "wordSize": 5,
   "hintLabel": "Pista",
+  "guide": { "lock": "Guarda una letra", "pick": "Toca para elegir" },
   "keys": "abcdefghijklmnñopqrstuvwxyzáéíóúü",
   "categories": [
     {

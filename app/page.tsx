@@ -145,7 +145,7 @@ function getShareText(
   const score = state.solved ? state.guesses.length : "X";
 
   return [
-    `Chathuraksharam · ${pack.nativeName} · ${categoryLabel} ${state.puzzleId + 1} · ${score}/${MAX_GUESSES}`,
+    `${pack.title} · ${pack.nativeName} · ${categoryLabel} ${state.puzzleId + 1} · ${score}/${MAX_GUESSES}`,
     ...rows,
     `🔥 ${state.streak} round streak`,
     `Can you solve a ${pack.name} word?`,
@@ -183,7 +183,7 @@ function getKeyboardState(
 }
 
 export default function Home() {
-  const [languageId, setLanguageId] = useState("ml");
+  const [languageId, setLanguageId] = useState("en");
   const [categoryId, setCategoryId] = useState("everyday");
   const [puzzleId, setPuzzleId] = useState(0);
   const pack = useMemo(() => getPack(languageId), [languageId]);
@@ -218,6 +218,12 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [showStreamMenu, setShowStreamMenu] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.lang = pack.locale;
+    document.documentElement.dir = pack.direction;
+    document.title = pack.title;
+  }, [pack]);
   const [settledCount, setSettledCount] = useState(0);
   const [revealing, setRevealing] = useState(false);
   const [winWaveRow, setWinWaveRow] = useState<number | null>(null);
@@ -376,28 +382,24 @@ export default function Home() {
       window.clearTimeout(autoCheckRef.current);
       autoCheckRef.current = null;
       if (event === "unlock") {
-        setMessage("Unlocked. Pull again, or lock all five to check.");
+        setMessage("Unlocked.");
       }
     }
 
     if (event === "land") {
       posthog.capture("lever_pulled", { result: "land", puzzle_id: puzzleId });
-      setMessage(
-        "The reels spell a real word — lock what you like, or pull again.",
-      );
+      setMessage("");
       return;
     }
 
     if (event === "freespin") {
       posthog.capture("lever_pulled", { result: "freespin", puzzle_id: puzzleId });
-      setMessage(
-        "No dictionary word fits your locked letters — that was a free spin.",
-      );
+      setMessage("Free spin — no word fits those locks.");
       return;
     }
 
     if (event === "lock" && locked.every(Boolean)) {
-      setMessage("All five locked! Checking…");
+      setMessage("Checking…");
       autoCheckRef.current = window.setTimeout(() => {
         autoCheckRef.current = null;
         submitWord(letters.join(""));
@@ -481,7 +483,7 @@ export default function Home() {
         );
         later(() => setShowResultModal(true), 750);
       } else {
-        setMessage("The reels are unlocked — pull the lever for fresh letters.");
+        setMessage("");
         later(() => sfx.roll(), 180);
       }
     }, REVEAL_TOTAL_MS + 60);
@@ -491,7 +493,7 @@ export default function Home() {
     const text = getShareText(pack, category.label, state, answer);
     try {
       if (navigator.share) {
-        await navigator.share({ text, title: "Chathuraksharam" });
+        await navigator.share({ text, title: pack.title });
         posthog.capture("result_shared", { method: "share", puzzle_id: puzzleId });
         setMessage("Result shared.");
       } else {
@@ -601,7 +603,7 @@ export default function Home() {
         <header className="game-header flex items-center justify-between gap-3 pb-3">
           <div className="title-block flex items-center gap-3">
             <div>
-              <h1 className="game-title">Chathuraksharam</h1>
+              <h1 className="game-title">{pack.title}</h1>
             </div>
             <p className="game-chip">#{puzzleId + 1}</p>
           </div>
@@ -663,7 +665,7 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="game-layout grid flex-1 items-start justify-center py-6">
+        <div className="game-layout grid flex-1 items-start py-6">
           <div className="tilt-stage" ref={stageRef}>
             <section
               aria-label={`${pack.name} ${category.label} word puzzle`}
@@ -690,9 +692,11 @@ export default function Home() {
                 keyboardState={keyboardState}
                 key={`machine-${pack.id}-${category.id}-${puzzleId}`}
                 keys={allKeys}
+                guideLabels={pack.guide}
                 onChange={handleMachineChange}
                 presetLetter={answerTiles[0]}
-                roundKey={state.guesses.length}
+                reelsLabel={`${pack.name} letter reels`}
+                roundKey={`${pack.id}-${category.id}-${puzzleId}-${state.guesses.length}`}
                 usedWords={state.guesses}
               />
 

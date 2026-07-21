@@ -20,7 +20,7 @@ const balooChettan = Baloo_Chettan_2({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.chathuraksharam.com"),
-  title: "Chathuraksharam",
+  title: "Chathuraksharam — Word Square",
   description:
     "Spin, lock, and solve word puzzles across languages and categories.",
   icons: {
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
     shortcut: "/favicon.svg",
   },
   openGraph: {
-    title: "Chathuraksharam",
+    title: "Chathuraksharam — Word Square",
     description:
       "A multilingual word game with endless category-based puzzle streams.",
     images: ["/og.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Chathuraksharam",
+    title: "Chathuraksharam — Word Square",
     description:
       "A multilingual word game with endless category-based puzzle streams.",
     images: ["/og.png"],
@@ -52,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ml">
+    <html dir="ltr" lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${balooChettan.variable} antialiased`}
       >

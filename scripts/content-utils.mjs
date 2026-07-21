@@ -36,6 +36,10 @@ export function validatePack(pack) {
     category.puzzles.map((puzzle) => puzzle.word),
   );
   const errors = validateWords(pack, [...pack.dictionary, ...puzzleWords]);
+  if (!pack.title?.trim()) errors.push("pack missing title");
+  for (const field of ["lock", "pick"]) {
+    if (!pack.guide?.[field]?.trim()) errors.push(`guide missing ${field}`);
+  }
   for (const category of pack.categories) {
     for (const puzzle of category.puzzles) {
       for (const field of ["word", "pronunciation", "meaning", "clue"]) {

@@ -2,10 +2,12 @@
   "id": "ml",
   "name": "Malayalam",
   "nativeName": "മലയാളം",
+  "title": "Chathuraksharam - ചതുരക്ഷരം",
   "locale": "ml",
   "direction": "ltr",
   "wordSize": 5,
   "hintLabel": "ഇന്നത്തെ സൂചന",
+  "guide": { "lock": "ഒരു അക്ഷരം സൂക്ഷിക്കുക", "pick": "തിരഞ്ഞെടുക്കാൻ തൊടുക" },
   "keys": [
     { "text": "ക", "sound": "ka" }, { "text": "പു", "sound": "pu" }, { "text": "നി", "sound": "ni" }, { "text": "വു", "sound": "vu" }, { "text": "മ", "sound": "ma" }, { "text": "വ", "sound": "va" }, { "text": "രി", "sound": "ri" },
     { "text": "ത", "sound": "tha" }, { "text": "ല", "sound": "la" }, { "text": "ര", "sound": "ra" }, { "text": "ങ്ങ", "sound": "nga" }, { "text": "കു", "sound": "ku" }, { "text": "ൻ", "sound": "n" }, { "text": "വി", "sound": "vi" },

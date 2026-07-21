@@ -256,6 +256,18 @@ button {
 .tilt-stage {
   --tilt-x: 0deg;
   --tilt-y: 0deg;
+  justify-self: center;
+  max-width: 36rem;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Give the game a definite responsive column. An implicit, centered grid
+   track shrink-wraps to its text content, which made short Latin glyphs
+   produce narrow reels until a longer post-pull status message appeared. */
+.game-layout {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
 }
 
 @media (pointer: fine) and (min-width: 640px) {
@@ -680,6 +692,7 @@ button {
 
 .machine {
   margin-top: 6px;
+  width: 100%;
 }
 
 .machine-body {
@@ -687,6 +700,7 @@ button {
   display: flex;
   gap: 12px;
   justify-content: center;
+  width: 100%;
 }
 
 .reel-bank {
@@ -698,11 +712,12 @@ button {
     inset 0 2px 14px rgba(0, 0, 0, 0.45),
     0 18px 40px rgba(0, 0, 0, 0.35);
   display: grid;
-  flex: 1;
+  flex: 1 1 470px;
   gap: 8px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   max-width: 470px;
   padding: 12px;
+  width: 0;
 }
 
 .reel {
@@ -788,7 +803,67 @@ button {
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+  position: relative;
   transition: opacity 160ms ease;
+}
+
+.coach-tip {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border: 1px solid rgba(255, 235, 184, 0.7);
+  border-radius: 999px;
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.48), 0 0 18px rgba(224, 170, 75, 0.28);
+  color: #211806;
+  font-size: 0.66rem;
+  font-weight: 900;
+  left: 50%;
+  line-height: 1;
+  padding: 7px 10px;
+  pointer-events: none;
+  position: absolute;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.coach-tip::after {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  content: "";
+  left: 50%;
+  margin-left: -5px;
+  position: absolute;
+}
+
+.coach-tip-lock {
+  bottom: calc(100% + 9px);
+  transform: translateX(-50%);
+}
+
+.coach-tip-lock::after {
+  border-top: 6px solid var(--gold);
+  bottom: -6px;
+}
+
+.coach-tip-pick {
+  top: calc(100% + 9px);
+  transform: translateX(-50%);
+}
+
+.coach-tip-pick::after {
+  border-bottom: 6px solid var(--gold);
+  top: -6px;
+}
+
+.coach-target {
+  animation: coach-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes coach-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(242, 205, 124, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(242, 205, 124, 0.2), 0 0 22px rgba(224, 170, 75, 0.5);
+  }
 }
 
 .reel-lock-btn {
@@ -1605,6 +1680,11 @@ button {
 /* ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
+  .coach-target {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(242, 205, 124, 0.22);
+  }
+
   .confetti-piece {
     animation-duration: 0.01ms;
     display: none;

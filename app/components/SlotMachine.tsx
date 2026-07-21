@@ -5,6 +5,7 @@ import {
   memo,
   PointerEvent as ReactPointerEvent,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -14,6 +15,7 @@ import { buzz, sfx } from "../lib/sfx";
 type KeyDef = { ml: string; sound: string };
 type TileState = "correct" | "present" | "absent" | "empty";
 type ReelMotion = "idle" | "spin" | "snap";
+type GuideStep = "lock" | "pick" | null;
 
 export type MachineEvent = "land" | "freespin" | "lock" | "unlock" | "dial";
 
@@ -25,10 +27,24 @@ const REEL_COUNT = 5;
 // layer, and tall strips pushed mobile Safari into memory-pressure page
 // reloads mid-game.
 const STRIP_COPIES = 4;
-// Deterministic pseudo-shuffle (stride coprime with 35) so the server and
-// client render identical reels; randomness only enters via lever pulls.
-const STRIDE = 11;
+// Preferred deterministic pseudo-shuffle stride. The actual stride is
+// adjusted per language so it is coprime with that alphabet's size; otherwise
+// an alphabet such as Spanish's 33 entries would repeat only 3 letters.
+const PREFERRED_STRIDE = 11;
 const INITIAL_OFFSETS = [0, 7, 14, 21, 28];
+const GUIDE_STORAGE_KEY = "chathuraksharam-guidance-v1";
+
+function greatestCommonDivisor(a: number, b: number): number {
+  return b === 0 ? a : greatestCommonDivisor(b, a % b);
+}
+
+function getReelStride(length: number) {
+  if (length <= 1) return 1;
+
+  let stride = Math.min(PREFERRED_STRIDE, length - 1);
+  while (greatestCommonDivisor(stride, length) !== 1) stride -= 1;
+  return stride;
+}
 
 function spinWeight(state: TileState | undefined) {
   // Lever luck is weighted: letters proven absent become rare and letters
@@ -161,24 +177,29 @@ export default function SlotMachine({
   presetLetter,
   dictionary,
   usedWords,
+  guideLabels,
+  reelsLabel,
   onChange,
 }: {
   keys: ReadonlyArray<KeyDef>;
   keyboardState: Map<string, TileState>;
   disabled: boolean;
-  roundKey: number;
+  roundKey: string;
   /** The hinted first aksharam: reel 1 starts on it, pre-locked. */
   presetLetter?: string;
   /** Guess dictionary as pre-split aksharam arrays; pulls land on these. */
   dictionary: ReadonlyArray<ReadonlyArray<string>>;
   /** Words already guessed this round — pulls avoid repeating them. */
   usedWords: ReadonlyArray<string>;
+  guideLabels: { lock: string; pick: string };
+  reelsLabel: string;
   onChange: (letters: string[], locked: boolean[], event: MachineEvent) => void;
 }) {
   const reelSeq = useMemo(() => {
+    const stride = getReelStride(keys.length);
     const seq: KeyDef[] = [];
     for (let i = 0; i < keys.length; i += 1) {
-      seq.push(keys[(i * STRIDE) % keys.length]);
+      seq.push(keys[(i * stride) % keys.length]);
     }
     return seq;
   }, [keys]);
@@ -193,22 +214,25 @@ export default function SlotMachine({
 
   // Reels rest inside the second alphabet copy: one copy of runway above
   // for upward dials, and (STRIP_COPIES - 2) copies below for the spin.
-  const initialPositions = () =>
-    INITIAL_OFFSETS.map((offset, i) =>
-      i === 0 && presetIndex >= 0
-        ? seqLength + presetIndex
-        : seqLength + offset,
-    );
-  const initialLocked = () => {
+  const initialPositions = useMemo(
+    () =>
+      INITIAL_OFFSETS.map((offset, i) =>
+        i === 0 && presetIndex >= 0
+          ? seqLength + presetIndex
+          : seqLength + (offset % seqLength),
+      ),
+    [presetIndex, seqLength],
+  );
+  const initialLocked = useMemo(() => {
     const flags = Array(REEL_COUNT).fill(false);
     if (presetIndex >= 0) flags[0] = true;
     return flags;
-  };
+  }, [presetIndex]);
 
   // positions[i] is an index into the repeated strip; the visible letter is
   // reelSeq[position mod seqLength]. Kept within the middle copies.
-  const [positions, setPositions] = useState<number[]>(initialPositions);
-  const [locked, setLocked] = useState<boolean[]>(initialLocked);
+  const [positions, setPositions] = useState<number[]>(() => initialPositions);
+  const [locked, setLocked] = useState<boolean[]>(() => initialLocked);
   const [motion, setMotion] = useState<ReelMotion[]>(() =>
     Array(REEL_COUNT).fill("idle"),
   );
@@ -217,6 +241,7 @@ export default function SlotMachine({
   const [pickerReel, setPickerReel] = useState<number | null>(null);
   const [leverPulled, setLeverPulled] = useState(false);
   const [interacted, setInteracted] = useState(false);
+  const [guideStep, setGuideStep] = useState<GuideStep>(null);
   const timeouts = useRef<number[]>([]);
   const dragRef = useRef<{
     reel: number;
@@ -226,13 +251,23 @@ export default function SlotMachine({
     moved: number;
     live: number;
   } | null>(null);
-  const lastPointerWasDrag = useRef(false);
   // Dictionary words the lever has landed on since page load; cleared only
   // when every word fitting the locks has been shown.
   const landedWords = useRef<Set<string>>(new Set());
   const rafRef = useRef(0);
   const positionsRef = useRef(positions);
+  const guideComplete = useRef(false);
+  const hasUserLocked = useRef(false);
   const spinning = motion.some((m) => m === "spin");
+
+  useEffect(() => {
+    try {
+      guideComplete.current =
+        window.localStorage.getItem(GUIDE_STORAGE_KEY) === "done";
+    } catch {
+      guideComplete.current = false;
+    }
+  }, []);
 
   useEffect(() => {
     positionsRef.current = positions;
@@ -250,20 +285,23 @@ export default function SlotMachine({
     };
   }, []);
 
-  // New round: everything resets — the hinted first reel snaps back to the
-  // given letter and re-locks (reset-on-prop-change pattern).
-  const [prevRound, setPrevRound] = useState(roundKey);
-  if (prevRound !== roundKey) {
-    setPrevRound(roundKey);
-    setLocked(initialLocked());
-    if (presetIndex >= 0) {
-      setPositions((current) => {
-        const next = [...current];
-        next[0] = seqLength + presetIndex;
-        return next;
-      });
-    }
-  }
+  // Reset the complete machine before paint whenever the stream, puzzle, or
+  // guess round changes. Guess count alone is not a unique round identity:
+  // every newly selected language/category starts at zero too.
+  useLayoutEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const nextPositions = [...initialPositions];
+    positionsRef.current = nextPositions;
+    setPositions(nextPositions);
+    setLocked([...initialLocked]);
+    setMotion(Array(REEL_COUNT).fill("idle"));
+    setDragReel(null);
+    setPickerReel(null);
+    setLeverPulled(false);
+    setInteracted(false);
+    landedWords.current.clear();
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [initialLocked, initialPositions, roundKey]);
 
   const normalize = (p: number) =>
     seqLength + ((Math.round(p) % seqLength) + seqLength) % seqLength;
@@ -323,6 +361,7 @@ export default function SlotMachine({
     ).matches;
 
     setLeverPulled(true);
+    if (guideStep === "lock") setGuideStep(null);
     later(() => setLeverPulled(false), 620);
     setInteracted(true);
     sfx.crank();
@@ -388,6 +427,9 @@ export default function SlotMachine({
       setPositions((current) => current.map((p) => normalize(p)));
       const letters = nextPositions.map((p) => letterAt(p).ml);
       onChange(letters, locked, freespin ? "freespin" : "land");
+      if (!guideComplete.current && !hasUserLocked.current) {
+        setGuideStep("lock");
+      }
     }, lastLand + 120);
   }
 
@@ -395,11 +437,23 @@ export default function SlotMachine({
   // Direct letter picking (per-reel keyboard) and vertical drags.
   // ------------------------------------------------------------------
 
-  function openPicker(index: number) {
-    if (disabled || spinning || locked[index] || dragReel !== null) return;
+  function showPicker(index: number) {
+    if (disabled || spinning || locked[index]) return;
     if (pickerReel === index) return; // already targeted — stays open
+    guideComplete.current = true;
+    setGuideStep(null);
+    try {
+      window.localStorage.setItem(GUIDE_STORAGE_KEY, "done");
+    } catch {
+      // The guidance still dismisses for this session if storage is blocked.
+    }
     sfx.key();
     setPickerReel(index);
+  }
+
+  function openPicker(index: number) {
+    if (dragReel !== null) return;
+    showPicker(index);
   }
 
   // The callout points an arrow at its reel; keep the caret under the
@@ -469,7 +523,6 @@ export default function SlotMachine({
     event: ReactPointerEvent<HTMLButtonElement>,
     index: number,
   ) => {
-    lastPointerWasDrag.current = false;
     if (disabled || spinning || locked[index]) return;
     const window_ = event.currentTarget.querySelector(".reel-window");
     const height = window_
@@ -520,9 +573,12 @@ export default function SlotMachine({
       const isTap =
         Math.round(drag.live) === Math.round(drag.startPos) &&
         drag.moved < drag.itemHeight * 0.45;
-      lastPointerWasDrag.current = !isTap;
-
-      if (!isTap) {
+      if (isTap) {
+        // Open directly from the completed pointer gesture. Waiting for the
+        // browser's subsequent click was unreliable after the pointerdown
+        // state update, especially on touch devices.
+        showPicker(index);
+      } else {
         setInteracted(true);
         sfx.tick();
         buzz(6);
@@ -551,10 +607,11 @@ export default function SlotMachine({
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
     };
-    // letterAt/normalize are stable per reelSeq; locked is read fresh enough
-    // for the dial event payload.
+    // letterAt/normalize are stable per reelSeq. The interaction-state
+    // dependencies ensure a new attempt cannot retain the disabled reveal
+    // state in this window-level pointer handler.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locked, seqLength]);
+  }, [disabled, locked, pickerReel, seqLength, spinning]);
 
   function nextUnlocked(from: number, lockedFlags: boolean[]) {
     for (let step = 1; step <= REEL_COUNT; step += 1) {
@@ -571,6 +628,8 @@ export default function SlotMachine({
     next[index] = !next[index];
     setLocked(next);
     if (next[index]) {
+      hasUserLocked.current = true;
+      if (!guideComplete.current) setGuideStep("pick");
       sfx.lock();
       buzz(12);
     } else {
@@ -586,10 +645,11 @@ export default function SlotMachine({
   }
 
   const allLocked = locked.every(Boolean);
+  const guideTarget = locked.findIndex((isLocked) => !isLocked);
 
   return (
     <div
-      aria-label="Malayalam letter reels"
+      aria-label={reelsLabel}
       className="machine"
       ref={machineRef}
       role="group"
@@ -608,6 +668,16 @@ export default function SlotMachine({
                   ? `transform ${820 + i * 240}ms cubic-bezier(0.18, 0.7, 0.3, 1.08)`
                   : "transform 160ms cubic-bezier(0.3, 1.3, 0.5, 1)";
             const isTarget = pickerReel === i;
+            const showLockGuide =
+              guideStep === "lock" &&
+              guideTarget === i &&
+              !spinning &&
+              !disabled;
+            const showPickGuide =
+              guideStep === "pick" &&
+              guideTarget === i &&
+              !spinning &&
+              !disabled;
             return (
               <div
                 className="reel-col"
@@ -628,17 +698,30 @@ export default function SlotMachine({
                       : `Lock reel ${i + 1} on ${key.ml}`
                   }
                   aria-pressed={locked[i]}
-                  className={`reel-lock-btn ${locked[i] ? "locked" : ""}`}
+                  className={`reel-lock-btn ${locked[i] ? "locked" : ""} ${
+                    showLockGuide ? "coach-target" : ""
+                  }`}
                   disabled={disabled || spinning}
                   onClick={() => toggleLock(i)}
                   type="button"
                 >
                   <LockIcon open={!locked[i]} />
                 </button>
+                {showLockGuide ? (
+                  <span
+                    aria-live="polite"
+                    className="coach-tip coach-tip-lock"
+                    role="status"
+                  >
+                    {guideLabels.lock}
+                  </span>
+                ) : null}
                 <div
                   className={`reel ${locked[i] ? "locked" : ""} ${
                     isTarget ? "targeted" : ""
-                  } ${reelMotion === "spin" ? "spinning" : ""} status-${status}`}
+                  } ${showPickGuide ? "coach-target" : ""} ${
+                    reelMotion === "spin" ? "spinning" : ""
+                  } status-${status}`}
                   style={
                     isTarget
                       ? {
@@ -650,40 +733,47 @@ export default function SlotMachine({
                       : undefined
                   }
                 >
-                <button
-                  aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${
-                    locked[i]
-                      ? "Locked — unlock to change"
-                      : "Tap to pick a letter, drag to dial"
-                  }`}
-                  className="reel-dial"
-                  disabled={disabled}
-                  onClick={(event) => {
-                    // Keyboard activation (detail 0) always opens; pointer
-                    // clicks only when the gesture was a tap, not a dial.
-                    if (event.detail === 0 || !lastPointerWasDrag.current) {
-                      openPicker(i);
-                    }
-                  }}
-                  onPointerDown={(event) => onDialPointerDown(event, i)}
-                  type="button"
-                >
-                  <div className="reel-window">
-                    <div
-                      className="reel-strip"
-                      style={
-                        {
-                          transition,
-                          transform: `translateY(calc(var(--reel-item) * (1 - 1 * ${displayed})))`,
-                        } as CSSProperties
-                      }
-                    >
-                      <ReelStripItems reelSeq={reelSeq} />
+                  <button
+                    aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${
+                      locked[i]
+                        ? "Locked — unlock to change"
+                        : "Tap to pick a letter, drag to dial"
+                    }`}
+                    className="reel-dial"
+                    disabled={disabled}
+                    onClick={(event) => {
+                      // Pointer taps open from the completed dial gesture;
+                      // click remains the keyboard activation path.
+                      if (event.detail === 0) openPicker(i);
+                    }}
+                    onPointerDown={(event) => onDialPointerDown(event, i)}
+                    type="button"
+                  >
+                    <div className="reel-window">
+                      <div
+                        className="reel-strip"
+                        style={
+                          {
+                            transition,
+                            transform: `translateY(calc(var(--reel-item) * (1 - 1 * ${displayed})))`,
+                          } as CSSProperties
+                        }
+                      >
+                        <ReelStripItems reelSeq={reelSeq} />
+                      </div>
+                      <div aria-hidden="true" className="reel-shade" />
                     </div>
-                    <div aria-hidden="true" className="reel-shade" />
-                  </div>
-                </button>
+                  </button>
                 </div>
+                {showPickGuide ? (
+                  <span
+                    aria-live="polite"
+                    className="coach-tip coach-tip-pick"
+                    role="status"
+                  >
+                    {guideLabels.pick}
+                  </span>
+                ) : null}
               </div>
             );
           })}
