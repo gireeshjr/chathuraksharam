@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import posthog from "posthog-js";
+import FeedbackForm from "./components/FeedbackForm";
 import SlotMachine, { MachineEvent } from "./components/SlotMachine";
 import WordDrum, { DrumRow } from "./components/WordDrum";
 import {
@@ -785,17 +786,24 @@ export default function Home() {
               ) : null}
             </section>
           </div>
-          <a
-            className="community-link mx-auto mt-7"
-            href={WHATSAPP_CHANNEL_URL}
-            onClick={trackWhatsAppChannel}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <span aria-hidden="true">◉</span>
-            Follow game updates on WhatsApp
-            <span aria-hidden="true">→</span>
-          </a>
+          <div className="community-actions mx-auto mt-7">
+            <a
+              className="community-link"
+              href={WHATSAPP_CHANNEL_URL}
+              onClick={trackWhatsAppChannel}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <span aria-hidden="true">◉</span>
+              Follow updates
+              <span aria-hidden="true">→</span>
+            </a>
+            <FeedbackForm
+              category={category.id}
+              language={pack.id}
+              puzzle={puzzleId + 1}
+            />
+          </div>
         </div>
       </section>
     </main>
