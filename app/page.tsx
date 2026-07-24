@@ -303,6 +303,7 @@ export default function Home() {
   const [showResultModal, setShowResultModal] = useState(false);
   const [showStreamMenu, setShowStreamMenu] = useState(false);
   const [hintReplayKey, setHintReplayKey] = useState(0);
+  const [machineResetKey, setMachineResetKey] = useState(0);
 
   useEffect(() => {
     document.documentElement.lang = pack.locale;
@@ -504,7 +505,12 @@ export default function Home() {
     const tiles = splitWord(pack, normalized);
 
     if (tiles.length !== WORD_SIZE) {
-      setMessage(`Enter exactly ${WORD_SIZE} ${pack.name} letters.`);
+      setMessage(
+        pack.id === "ml"
+          ? "Some of those letters join together. The reels were reset — try another combination."
+          : `Enter exactly ${WORD_SIZE} ${pack.name} letters.`,
+      );
+      setMachineResetKey((current) => current + 1);
       setShakeRow(true);
       sfx.invalid();
       buzz(60);
@@ -811,7 +817,7 @@ export default function Home() {
                 onChange={handleMachineChange}
                 presetLetter={answerTiles[0]}
                 reelsLabel={`${pack.name} letter reels`}
-                roundKey={`${pack.id}-${category.id}-${puzzleId}-${state.guesses.length}`}
+                roundKey={`${pack.id}-${category.id}-${puzzleId}-${state.guesses.length}-${machineResetKey}`}
                 usedWords={state.guesses}
               />
 
