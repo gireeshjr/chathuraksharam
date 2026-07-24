@@ -182,6 +182,63 @@ function getKeyboardState(
   return states;
 }
 
+function getPositionKeyboardStates(
+  pack: LanguagePack,
+  guesses: string[],
+  answer: string,
+) {
+  const globalStates = getKeyboardState(pack, guesses, answer);
+  const correctAt: Array<string | null> = Array(WORD_SIZE).fill(null);
+  const misplacedAt = Array.from(
+    { length: WORD_SIZE },
+    () => new Set<string>(),
+  );
+  const presentLetters = new Set<string>();
+  const states = Array.from(
+    { length: WORD_SIZE },
+    () => new Map<string, TileState>(),
+  );
+
+  guesses.forEach((guess) => {
+    const tiles = splitWord(pack, guess);
+    const result = evaluateGuess(pack, guess, answer);
+
+    tiles.forEach((tile, index) => {
+      if (result[index] === "correct") correctAt[index] = tile;
+      if (result[index] === "present") {
+        presentLetters.add(tile);
+        misplacedAt[index].add(tile);
+      }
+    });
+  });
+
+  states.forEach((positionStates, index) => {
+    pack.keys.forEach((key) => {
+      const tile = key.text;
+      const confirmed = correctAt[index];
+
+      if (confirmed) {
+        if (tile === confirmed) positionStates.set(tile, "correct");
+        else if (globalStates.get(tile) === "absent") {
+          positionStates.set(tile, "absent");
+        }
+        return;
+      }
+
+      if (globalStates.get(tile) === "absent") {
+        positionStates.set(tile, "absent");
+      } else if (
+        presentLetters.has(tile) &&
+        !misplacedAt[index].has(tile)
+      ) {
+        positionStates.set(tile, "present");
+      }
+    });
+  });
+
+  return states;
+}
+
 export default function Home() {
   const [languageId, setLanguageId] = useState("en");
   const [categoryId, setCategoryId] = useState("everyday");
@@ -207,10 +264,6 @@ export default function Home() {
   );
   const storageKey = `${STORAGE_KEY}-${pack.id}-${category.id}-${puzzleId}`;
   const [state, setState] = useState<PersistedState>(() => emptyState(puzzleId));
-  // Reels only preview letters the player has explicitly locked.
-  const [preview, setPreview] = useState<string[]>(() =>
-    Array(WORD_SIZE).fill(""),
-  );
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -243,22 +296,24 @@ export default function Home() {
     () => getKeyboardState(pack, settledGuesses, answer.word),
     [answer.word, pack, settledGuesses],
   );
+  const positionKeyboardStates = useMemo(
+    () => getPositionKeyboardStates(pack, settledGuesses, answer.word),
+    [answer.word, pack, settledGuesses],
+  );
 
-  // The drum face the player is on. While a reveal is running the drum must
-  // hold the revealing row, and once the game ends it stays on the final
-  // guess instead of rolling to an empty face.
-  const activeRow =
+  // The drum keeps the latest evaluated guess visible. The attempt marker
+  // advances separately, so a new turn is clear without showing an empty face.
+  const activeRow = Math.max(0, state.guesses.length - 1);
+  const currentAttempt =
     revealing || gameOver
-      ? Math.max(0, state.guesses.length - 1)
+      ? activeRow
       : Math.min(state.guesses.length, MAX_GUESSES - 1);
 
   const drumRows = useMemo<DrumRow[]>(
     () =>
       Array.from({ length: MAX_GUESSES }, (_, rowIndex) => {
         const guess = state.guesses[rowIndex];
-        const isActiveEntry =
-          !guess && rowIndex === state.guesses.length && !gameOver;
-        const raw = guess ? splitWord(pack, guess) : isActiveEntry ? preview : [];
+        const raw = guess ? splitWord(pack, guess) : [];
         const tiles = Array.from(
           { length: WORD_SIZE },
           (_, index) => raw[index] ?? "",
@@ -275,7 +330,7 @@ export default function Home() {
             : ("idle" as const),
         };
       }),
-    [answer.word, gameOver, pack, preview, settledCount, state.guesses],
+    [answer.word, pack, settledCount, state.guesses],
   );
 
   const later = useCallback((fn: () => void, ms: number) => {
@@ -299,7 +354,6 @@ export default function Home() {
     const initial = getInitialState(puzzleId, storageKey);
     setState(initial);
     setSettledCount(initial.guesses.length);
-    setPreview(Array(WORD_SIZE).fill(""));
     setMessage("");
     setCopied(false);
     setShowResultModal(false);
@@ -368,21 +422,15 @@ export default function Home() {
     posthog.capture("sound_toggled", { sound_on: next });
   }
 
-  // All five reels locked → the check fires after a short beat; unlocking
-  // any reel inside that window cancels it.
+  // The single machine lock freezes all five reels and checks after a beat.
   function handleMachineChange(
     letters: string[],
     locked: boolean[],
     event: MachineEvent,
   ) {
-    setPreview(letters.map((letter, index) => (locked[index] ? letter : "")));
-
     if (autoCheckRef.current !== null) {
       window.clearTimeout(autoCheckRef.current);
       autoCheckRef.current = null;
-      if (event === "unlock") {
-        setMessage("Unlocked.");
-      }
     }
 
     if (event === "land") {
@@ -443,7 +491,6 @@ export default function Home() {
         ? current.puzzleId
         : current.lastSolvedPuzzleId,
     }));
-    setPreview(Array(WORD_SIZE).fill(""));
     setCopied(false);
     setRevealing(true);
     setMessage("Revealing…");
@@ -670,8 +717,17 @@ export default function Home() {
               aria-label={`${pack.name} ${category.label} word puzzle`}
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
+              <aside
+                className="game-goal arriving"
+                key={`goal-${pack.id}-${category.id}-${puzzleId}`}
+              >
+                <span aria-hidden="true">◎</span>
+                <p><strong>{pack.goal.label}:</strong> {pack.goal.text}</p>
+              </aside>
               <WordDrum
                 activeRow={activeRow}
+                attemptLabel={pack.attemptLabel}
+                currentAttempt={currentAttempt}
                 hint={answer.clue}
                 hintLabel={pack.hintLabel}
                 key={`drum-${pack.id}-${category.id}-${puzzleId}`}
@@ -686,9 +742,11 @@ export default function Home() {
               </p>
 
               <SlotMachine
+                answer={answer.word}
                 dictionary={guessWordTiles}
                 disabled={inputLocked}
                 keyboardState={keyboardState}
+                positionKeyboardStates={positionKeyboardStates}
                 key={`machine-${pack.id}-${category.id}-${puzzleId}`}
                 keys={allKeys}
                 guideLabels={pack.guide}

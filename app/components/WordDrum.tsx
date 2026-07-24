@@ -2,7 +2,6 @@
 
 import {
   CSSProperties,
-  PointerEvent as ReactPointerEvent,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -18,6 +17,7 @@ export type DrumRow = {
 };
 
 const FACE_ANGLE = 72; // 360 / 5 faces
+const RETURN_TO_CURRENT_MS = 3000;
 
 // Compound aksharams like സ്സു render wider than a square tile. Measure the
 // glyph and scale it down to fit, re-measuring when the display font loads
@@ -109,11 +109,13 @@ function Tile({
 }
 
 // A pentagonal drum: one guess per face. The active face points at the
-// player; after a reveal the drum rolls to the next blank face. Dragging
-// vertically (or tapping a dot) peeks at earlier guesses.
+// player; after a reveal the drum rolls to the next blank face. Only played
+// guesses and the current attempt are navigable; future faces are inert.
 export default function WordDrum({
   rows,
   activeRow,
+  currentAttempt,
+  attemptLabel,
   winWaveRow,
   shakeRow,
   soundFor,
@@ -122,6 +124,8 @@ export default function WordDrum({
 }: {
   rows: DrumRow[];
   activeRow: number;
+  currentAttempt: number;
+  attemptLabel: string;
   winWaveRow: number | null;
   shakeRow: boolean;
   soundFor: (tile: string) => string;
@@ -130,11 +134,31 @@ export default function WordDrum({
   hintLabel?: string;
 }) {
   const [viewIndex, setViewIndex] = useState(activeRow);
-  const [dragging, setDragging] = useState(false);
-  const dragOffset = useRef(0);
-  const dragStartY = useRef(0);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const pointerActive = useRef(false);
+  const [hintOpen, setHintOpen] = useState(true);
+  const hintTimer = useRef<number | null>(null);
+  const returnTimer = useRef<number | null>(null);
+
+  const revealHint = () => {
+    setHintOpen(true);
+    if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHintOpen(false), 5200);
+  };
+
+  useEffect(() => {
+    hintTimer.current = window.setTimeout(() => setHintOpen(false), 2200);
+    return () => {
+      if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (returnTimer.current !== null) {
+        window.clearTimeout(returnTimer.current);
+        returnTimer.current = null;
+      }
+    };
+  }, [activeRow]);
 
   // Whenever the game advances (typing resumes, reveal starts, or the round
   // rolls forward) snap the drum back to the live face. Adjusting state
@@ -145,59 +169,26 @@ export default function WordDrum({
     setViewIndex(activeRow);
   }
 
-  const applyAngle = (angle: number, transition: boolean) => {
-    const el = innerRef.current;
-    if (!el) return;
-    el.style.transition = transition ? "" : "none";
-    el.style.transform = `rotateX(${angle}deg)`;
-  };
-
-  useEffect(() => {
-    if (!pointerActive.current) {
-      applyAngle(viewIndex * FACE_ANGLE, true);
+  const viewGuess = (index: number) => {
+    if (returnTimer.current !== null) {
+      window.clearTimeout(returnTimer.current);
+      returnTimer.current = null;
     }
-  }, [viewIndex]);
 
-  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    pointerActive.current = true;
-    dragStartY.current = event.clientY;
-    dragOffset.current = 0;
-    setDragging(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!pointerActive.current) return;
-    const dy = event.clientY - dragStartY.current;
-    // Dragging down rolls the drum back toward earlier guesses.
-    dragOffset.current = -dy * 0.3;
-    applyAngle(viewIndex * FACE_ANGLE + dragOffset.current, false);
-  };
-
-  const endDrag = () => {
-    if (!pointerActive.current) return;
-    pointerActive.current = false;
-    setDragging(false);
-    const raw = viewIndex + dragOffset.current / FACE_ANGLE;
-    const snapped = Math.max(0, Math.min(rows.length - 1, Math.round(raw)));
-    dragOffset.current = 0;
-    setViewIndex(snapped);
-    applyAngle(snapped * FACE_ANGLE, true);
+    setViewIndex(index);
+    if (index !== activeRow) {
+      returnTimer.current = window.setTimeout(() => {
+        returnTimer.current = null;
+        setViewIndex(activeRow);
+      }, RETURN_TO_CURRENT_MS);
+    }
   };
 
   return (
     <div className="drum-zone">
-      <div
-        aria-live="polite"
-        className={`drum-viewport ${dragging ? "dragging" : ""}`}
-        onPointerCancel={endDrag}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-      >
+      <div aria-live="polite" className="drum-viewport">
         <div
           className="drum-inner"
-          ref={innerRef}
           style={{ transform: `rotateX(${viewIndex * FACE_ANGLE}deg)` }}
         >
           {rows.map((row, rowIndex) => {
@@ -237,19 +228,34 @@ export default function WordDrum({
               aria-label={`View guess ${index + 1}`}
               aria-pressed={viewIndex === index}
               className={`drum-dot ${played ? "played" : ""} ${
-                index === activeRow ? "active" : ""
+                index === currentAttempt ? "current" : ""
               } ${viewIndex === index ? "viewing" : ""}`}
+              disabled={index > activeRow}
               key={index}
-              onClick={() => setViewIndex(index)}
+              onClick={() => viewGuess(index)}
               type="button"
             />
           );
         })}
       </div>
+      <p aria-live="polite" className="attempt-status">
+        {attemptLabel} {currentAttempt + 1} / {rows.length}
+      </p>
       {hint ? (
-        <p className="drum-hint">
-          <strong>{hintLabel}:</strong> {hint}
-        </p>
+        <div className={`drum-hint ${hintOpen ? "open" : ""}`}>
+          <button
+            aria-expanded={hintOpen}
+            className="drum-hint-trigger"
+            onClick={() => hintOpen ? setHintOpen(false) : revealHint()}
+            type="button"
+          >
+            <strong>{hintLabel}</strong>
+            <span aria-hidden="true">{hintOpen ? "⌃" : "⌄"}</span>
+          </button>
+          <div className="drum-hint-reveal">
+            <p>{hint}</p>
+          </div>
+        </div>
       ) : null}
     </div>
   );

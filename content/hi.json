@@ -7,7 +7,9 @@
   "direction": "ltr",
   "wordSize": 5,
   "hintLabel": "आज का संकेत",
-  "guide": { "lock": "एक अक्षर सुरक्षित रखें", "pick": "चुनने के लिए टैप करें" },
+  "goal": { "label": "लक्ष्य", "text": "पाँच कोशिशों में पाँच-अक्षर वाला हिंदी शब्द खोजें। सभी डायल घुमाएँ, अक्षर ठीक करें, फिर जाँचने के लिए सभी लॉक करें।" },
+  "attemptLabel": "कोशिश",
+  "guide": { "lock": "जाँचने के लिए सभी लॉक करें", "pick": "चुनने के लिए टैप करें" },
   "keys": [
     { "text": "खू", "sound": "khoo" }, { "text": "ब", "sound": "ba" }, { "text": "सू", "sound": "soo" }, { "text": "र", "sound": "ra" }, { "text": "त", "sound": "ta" },
     { "text": "ई", "sound": "ee" }, { "text": "मा", "sound": "maa" }, { "text": "न", "sound": "na" }, { "text": "दा", "sound": "daa" }, { "text": "स", "sound": "sa" },

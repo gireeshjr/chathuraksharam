@@ -42,14 +42,13 @@ not by curling HTML.
 ## 3D gameplay (slot machine + word drum)
 
 - The ONLY input is the slot machine: five `.reel` buttons + a `.lever` button.
-  Click the lever → unlocked reels spin (~2s full speed) and land on weighted-
-  random letters (absent-marked letters are rare, present/correct ~3x likely).
-  Toggle a reel's `.reel-lock-btn` padlock to lock/unlock; locking all five
-  auto-checks after ~1.2s (unlocking inside that window cancels). Reels
-  auto-unlock after each reveal.
+  Click the lever → all reels spin (~2s full speed) and land on a dictionary
+  word other than the answer. The single `.machine-lock` button freezes all
+  five dials and auto-checks after ~1.2s. It shows a disabled “Checking…” state
+  during that delay; there is no transient unlock action. Reels reset after reveal.
 - Read a reel's current letter from its dial aria-label:
-  `Reel N: <letter>, <sound>. …`; locked state from `aria-pressed` on the
-  `.reel-lock-btn`.
+  `Reel N: <letter>, <sound>. …`; global locked state from `aria-pressed` on
+  `.machine-lock`.
 - Reels are also hand-settable (luck + effort): TAPPING the `.reel-dial`
   opens an inline keyboard callout below the reel bank (`.picker-pop`,
   one `.picker-key` per aksharam with keyboard-state colors; its
@@ -59,17 +58,17 @@ not by curling HTML.
   is a no-op — it closes only via ✕, the round ending, or locking the
   last reel). Picking
   snap-rolls the reel to that letter along the shortest path (REEL_SEQ =
-  allKeys[(i*11)%35]) and the callout STAYS OPEN for the next reel.
+  allKeys[(i*11)%35]), advances the callout to the next reel after the snap,
+  and closes the callout after a pick on reel 5.
   Dragging the `.reel-dial` vertically still scrolls it with
-  snap-to-letter. Locking is a SEPARATE `.reel-lock-btn` padlock
-  button on top of each reel (aria `Lock reel N on <letter>` / `Unlock
-  reel N`, aria-pressed = locked); the dial itself never toggles locks.
+  snap-to-letter. Locking is a separate global `.machine-lock` button;
+  the dial itself never toggles locks.
   Tap-vs-dial on the dial is judged by outcome, not a pixel slop: a
   gesture that stays on the same letter and moves less than ~45% of an
   item height opens the picker (so wobbly touch taps land); a drag that
   reaches another letter dials and must NOT open the picker. Locked reels
   refuse picking and drags. To assemble a specific word fast in a test,
-  pick each reel's target letter via the keyboard overlay and lock it —
+  pick each reel's target letter via the keyboard overlay, then lock all —
   no luck needed.
 - The lever is a pointer gesture (pointerdown grabs with capture, pointerup
   spins; keyboard fires via click detail 0) and has `touch-action: none`,
@@ -79,26 +78,34 @@ not by curling HTML.
   (spins loop exactly once — STRIP_COPIES=4 alphabet copies of runway,
   reels resting in copy 1; keep strips short, tall composited layers
   caused mobile Safari memory-pressure page reloads).
-- Reel 1 starts ON the answer's first aksharam but remains unlocked; all five
-  reels must be explicitly locked to trigger the auto-check. After game over
+- Reel 1 starts ON the answer's first aksharam but remains unlocked; the global
+  lock triggers the auto-check. After game over
   the drum stays on the final
   guessed face (it must not roll to an empty face).
-- Lever pulls land on GUESS_WORDS dictionary entries (answers + extras in
-  page.tsx) that match every locked reel and aren't already guessed. Pulls
+- Lever pulls land on dictionary entries that aren't the current answer or
+  already guessed. Pulls
   also avoid words the lever already landed on since page load — a word may
-  repeat only after every other fitting word has been shown; when
-  no word fits, it falls back to weighted-random letters and the status
+  repeat only after every other available word has been shown; when
+  no word remains, it falls back to weighted-random letters and the status
   says "free spin". To verify, replicate the dictionary in the test and
-  assert each landing is a member matching the locks. New dictionary words
+  assert each landing is a member and not the answer. New dictionary words
   must be real, kid-safe Malayalam — the build throws if one isn't exactly
   5 keyboard aksharams.
-- The hint is a `.drum-hint` tag hanging under the drum, inside the
-  drum-zone: "Today's hint: <clue>" (no letter tiles — the first
-  letter lives on the pre-locked reel).
+- The hint is a `.drum-hint` drawer under the drum. It briefly opens on load,
+  collapses to a compact trigger, and auto-collapses after every manual reveal.
+- The localized `.game-goal` replays its entrance animation whenever the
+  language, category, or puzzle changes.
 - The board is a pentagonal drum (`.drum-inner`); face i is front when its
-  inline transform is `rotateX(<i*72>deg)`. After a non-final reveal it must
-  roll +72°. Drag it vertically or click `.drum-dot` buttons to change faces.
-- Locked letters preview live on the drum's active face (position-mapped).
+  inline transform is `rotateX(<i*72>deg)`. It keeps the latest evaluated guess
+  in front while `.attempt-status` advances to “Try N / 5”. Completed dots
+  change faces; the current/future empty dots are disabled and the drum does
+  not drag. Viewing an older completed guess auto-returns to the latest guess
+  after 3 seconds; selecting another past guess restarts that timer.
+- Picker key colors express positional possibilities. A solved reel highlights
+  only its confirmed green aksharam. A globally present/orange aksharam appears
+  orange on every unsolved reel except positions where it was already tried
+  and marked misplaced. Known-absent keys remain dim.
+- Globally locked letters preview live on the drum's active face.
 - Test assertions now expect "Malayalam letter reels" and "Pull the lever"
   instead of the old keyboard strings.
 - NEVER add `setPointerCapture` to a container whose children are buttons:

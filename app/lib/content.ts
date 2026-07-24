@@ -26,6 +26,11 @@ export type LanguagePack = {
   direction: "ltr" | "rtl";
   wordSize: number;
   hintLabel: string;
+  goal: {
+    label: string;
+    text: string;
+  };
+  attemptLabel: string;
   guide: {
     lock: string;
     pick: string;

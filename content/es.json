@@ -7,7 +7,9 @@
   "direction": "ltr",
   "wordSize": 5,
   "hintLabel": "Pista",
-  "guide": { "lock": "Guarda una letra", "pick": "Toca para elegir" },
+  "goal": { "label": "Objetivo", "text": "Encuentra la palabra española de cinco letras en cinco intentos. Gira todos los diales, ajusta las letras y bloquea todo para comprobar." },
+  "attemptLabel": "Intento",
+  "guide": { "lock": "Bloquea todo para comprobar", "pick": "Toca para elegir" },
   "keys": "abcdefghijklmnñopqrstuvwxyzáéíóúü",
   "categories": [
     {
