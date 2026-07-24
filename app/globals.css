@@ -270,6 +270,35 @@ button {
   width: 100%;
 }
 
+.community-link {
+  align-items: center;
+  color: var(--ink-dim);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  justify-self: center;
+  letter-spacing: 0.02em;
+  padding: 0.55rem 0.8rem;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.community-link span:first-child {
+  color: #25d366;
+  font-size: 0.9rem;
+}
+
+.community-link:hover {
+  color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.community-link:focus-visible {
+  border-radius: 0.5rem;
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
 @media (pointer: fine) and (min-width: 640px) {
   .tilt-stage {
     perspective: 1500px;

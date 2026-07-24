@@ -25,8 +25,8 @@ const WORD_SIZE = 5;
 const STORAGE_KEY = "chathuraksharam-stream-state-v2";
 const SOUND_KEY = "chathuraksharam-sound-v1";
 const AUTO_CHECK_DELAY_MS = 1200;
-// Daily-reminder channel: joining IS the reminder signup; members can
-// leave the channel any time, so no extra confirmation step is needed.
+const WHATSAPP_CHANNEL_URL =
+  "https://whatsapp.com/channel/0029VbDGDdmAe5VjVZMjtH3o";
 
 // Tile-flip choreography. Keyboard state, confetti, and the result modal all
 // wait for the final tile to land so the reveal stays suspenseful.
@@ -553,6 +553,14 @@ export default function Home() {
     }
   }
 
+  function trackWhatsAppChannel() {
+    posthog.capture("whatsapp_channel_clicked", {
+      category: category.id,
+      language: pack.id,
+      puzzle_id: puzzleId,
+    });
+  }
+
   function nextPuzzle() {
     setShowResultModal(false);
     setPuzzleId((current) => current + 1);
@@ -777,7 +785,17 @@ export default function Home() {
               ) : null}
             </section>
           </div>
-
+          <a
+            className="community-link mx-auto mt-7"
+            href={WHATSAPP_CHANNEL_URL}
+            onClick={trackWhatsAppChannel}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <span aria-hidden="true">◉</span>
+            Follow game updates on WhatsApp
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
       </section>
     </main>
