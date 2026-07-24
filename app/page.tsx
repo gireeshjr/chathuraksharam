@@ -4,6 +4,7 @@ import {
   CSSProperties,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -23,6 +24,8 @@ import { buzz, setSfxEnabled, sfx } from "./lib/sfx";
 
 const MAX_GUESSES = 5;
 const WORD_SIZE = 5;
+const START_DATE = Date.UTC(2026, 0, 1);
+const DAY_MS = 86_400_000;
 const STORAGE_KEY = "chathuraksharam-stream-state-v2";
 const SOUND_KEY = "chathuraksharam-sound-v1";
 const AUTO_CHECK_DELAY_MS = 1200;
@@ -54,6 +57,17 @@ type PersistedState = {
   wins: number;
   lastSolvedPuzzleId?: number;
 };
+
+// UTC keeps the server render and every player on the same starting round.
+function getDailyPuzzleId() {
+  const now = new Date();
+  const todayUtc = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  return Math.max(0, Math.floor((todayUtc - START_DATE) / DAY_MS));
+}
 
 function evaluateGuess(
   pack: LanguagePack,
@@ -244,6 +258,7 @@ export default function Home() {
   const [languageId, setLanguageId] = useState("en");
   const [categoryId, setCategoryId] = useState("everyday");
   const [puzzleId, setPuzzleId] = useState(0);
+  const [dailyReady, setDailyReady] = useState(false);
   const pack = useMemo(() => getPack(languageId), [languageId]);
   const category = useMemo(
     () => pack.categories.find((item) => item.id === categoryId) ?? pack.categories[0],
@@ -285,6 +300,16 @@ export default function Home() {
   const timeoutsRef = useRef<number[]>([]);
   const autoCheckRef = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    // The route is statically generated, so choose the live UTC round only
+    // after hydration. This avoids freezing the deployment day's answer into
+    // the HTML or producing a server/client mismatch after midnight.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setPuzzleId(getDailyPuzzleId());
+    setDailyReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
 
   const gameOver = state.solved || state.guesses.length >= MAX_GUESSES;
   const inputLocked = gameOver || revealing;
@@ -570,18 +595,18 @@ export default function Home() {
   function chooseLanguage(id: string) {
     setLanguageId(id);
     setCategoryId("everyday");
-    setPuzzleId(0);
+    setPuzzleId(getDailyPuzzleId());
     setShowStreamMenu(false);
   }
 
   function chooseCategory(id: string) {
     setCategoryId(id);
-    setPuzzleId(0);
+    setPuzzleId(getDailyPuzzleId());
     setShowStreamMenu(false);
   }
 
   return (
-    <main className="game-main">
+    <main className={`game-main ${dailyReady ? "" : "daily-loading"}`}>
       {showConfetti ? (
         <div className="confetti-burst" aria-hidden="true">
           {CONFETTI_PIECES.map((piece, index) => (

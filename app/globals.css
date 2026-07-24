@@ -60,6 +60,13 @@ body {
   overflow-x: hidden;
 }
 
+/* The static shell uses round 1 for deterministic HTML. Keep it out of view
+   until hydration selects the live UTC round, so players never see a stale
+   answer flash before today's puzzle appears. */
+.game-main.daily-loading {
+  visibility: hidden;
+}
+
 .site-shell {
   position: relative;
   z-index: 1;

@@ -38,6 +38,7 @@ test("server-renders the default English game", async () => {
     assert.match(html, /aria-haspopup="menu"/);
     assert.match(html, /English letter reels/);
     assert.match(html, /Pull the lever/);
+    assert.match(html, /#<!-- -->1/);
     assert.match(html, /A fruit that can be red, green, or gold/);
     assert.doesNotMatch(html, /How to play|Learner lookup|learning Malayalam|Manglish sound/);
     assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Starter Project/i);
