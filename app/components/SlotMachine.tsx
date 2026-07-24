@@ -185,7 +185,7 @@ export default function SlotMachine({
   keyboardState: Map<string, TileState>;
   disabled: boolean;
   roundKey: string;
-  /** The hinted first aksharam: reel 1 starts on it, pre-locked. */
+  /** The hinted first aksharam: reel 1 starts on it, but remains unlocked. */
   presetLetter?: string;
   /** Guess dictionary as pre-split aksharam arrays; pulls land on these. */
   dictionary: ReadonlyArray<ReadonlyArray<string>>;
@@ -223,11 +223,10 @@ export default function SlotMachine({
       ),
     [presetIndex, seqLength],
   );
-  const initialLocked = useMemo(() => {
-    const flags = Array(REEL_COUNT).fill(false);
-    if (presetIndex >= 0) flags[0] = true;
-    return flags;
-  }, [presetIndex]);
+  const initialLocked = useMemo(
+    () => Array(REEL_COUNT).fill(false),
+    [],
+  );
 
   // positions[i] is an index into the repeated strip; the visible letter is
   // reelSeq[position mod seqLength]. Kept within the middle copies.

@@ -79,10 +79,9 @@ not by curling HTML.
   (spins loop exactly once — STRIP_COPIES=4 alphabet copies of runway,
   reels resting in copy 1; keep strips short, tall composited layers
   caused mobile Safari memory-pressure page reloads).
-- Reel 1 starts ON the answer's first aksharam and pre-locked (the hint
-  gives it away anyway); it re-locks at the start of every round, stays
-  unlockable, and never spins while locked. Only 4 locks are needed to
-  trigger the auto-check. After game over the drum stays on the final
+- Reel 1 starts ON the answer's first aksharam but remains unlocked; all five
+  reels must be explicitly locked to trigger the auto-check. After game over
+  the drum stays on the final
   guessed face (it must not roll to an empty face).
 - Lever pulls land on GUESS_WORDS dictionary entries (answers + extras in
   page.tsx) that match every locked reel and aren't already guessed. Pulls

@@ -207,11 +207,10 @@ export default function Home() {
   );
   const storageKey = `${STORAGE_KEY}-${pack.id}-${category.id}-${puzzleId}`;
   const [state, setState] = useState<PersistedState>(() => emptyState(puzzleId));
-  // The hinted first letter starts locked in, so it previews on the board.
-  const [preview, setPreview] = useState<string[]>(() => [
-    answerTiles[0],
-    ...Array(WORD_SIZE - 1).fill(""),
-  ]);
+  // Reels only preview letters the player has explicitly locked.
+  const [preview, setPreview] = useState<string[]>(() =>
+    Array(WORD_SIZE).fill(""),
+  );
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -300,7 +299,7 @@ export default function Home() {
     const initial = getInitialState(puzzleId, storageKey);
     setState(initial);
     setSettledCount(initial.guesses.length);
-    setPreview([answerTiles[0], ...Array(WORD_SIZE - 1).fill("")]);
+    setPreview(Array(WORD_SIZE).fill(""));
     setMessage("");
     setCopied(false);
     setShowResultModal(false);
@@ -444,7 +443,7 @@ export default function Home() {
         ? current.puzzleId
         : current.lastSolvedPuzzleId,
     }));
-    setPreview([answerTiles[0], ...Array(WORD_SIZE - 1).fill("")]);
+    setPreview(Array(WORD_SIZE).fill(""));
     setCopied(false);
     setRevealing(true);
     setMessage("Revealing…");
