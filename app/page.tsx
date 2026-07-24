@@ -622,7 +622,6 @@ export default function Home() {
     setCategoryId("everyday");
     setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
-    setShowStreamMenu(false);
   }
 
   function chooseCategory(id: string) {
