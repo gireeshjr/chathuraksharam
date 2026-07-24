@@ -320,6 +320,19 @@ button {
   justify-items: center;
 }
 
+.feedback-overlay {
+  align-items: center;
+  background: rgba(2, 9, 6, 0.88);
+  backdrop-filter: blur(10px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 1.25rem;
+  position: fixed;
+  z-index: 50;
+}
+
 .feedback-panel {
   background: linear-gradient(160deg, rgba(20, 36, 27, 0.98), rgba(7, 19, 14, 0.98));
   border: 1px solid rgba(31, 180, 125, 0.55);
@@ -327,10 +340,8 @@ button {
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   display: grid;
   gap: 0.85rem;
-  margin-top: 0.4rem;
   padding: 1rem;
   width: min(25rem, calc(100vw - 2.5rem));
-  z-index: 4;
 }
 
 .feedback-heading {
@@ -423,6 +434,22 @@ button {
   color: var(--emerald);
   padding: 1rem 0.25rem 1.15rem;
   text-align: center;
+}
+
+@media (max-width: 639px) {
+  .feedback-overlay {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .feedback-panel {
+    border: 0;
+    border-radius: 0;
+    justify-content: center;
+    min-height: 100%;
+    padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+    width: 100%;
+  }
 }
 
 @media (pointer: fine) and (min-width: 640px) {
