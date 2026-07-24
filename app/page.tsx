@@ -201,6 +201,7 @@ function getPositionKeyboardStates(
   pack: LanguagePack,
   guesses: string[],
   answer: string,
+  keys: LanguagePack["keys"],
 ) {
   const globalStates = getKeyboardState(pack, guesses, answer);
   const correctAt: Array<string | null> = Array(WORD_SIZE).fill(null);
@@ -228,7 +229,7 @@ function getPositionKeyboardStates(
   });
 
   states.forEach((positionStates, index) => {
-    pack.keys.forEach((key) => {
+    keys.forEach((key) => {
       const tile = key.text;
       const confirmed = correctAt[index];
 
@@ -266,18 +267,33 @@ export default function Home() {
   );
   const answer = category.puzzles[puzzleId % category.puzzles.length];
   const answerTiles = useMemo(() => splitWord(pack, answer.word), [answer.word, pack]);
+  const playableKeys = useMemo(() => {
+    if (!category.deriveKeysFromPuzzles) return pack.keys;
+    const words = [
+      ...category.puzzles.map((puzzle) => puzzle.word),
+      ...(category.dictionary ?? []),
+    ];
+    const tiles = [...new Set(words.flatMap((word) => splitWord(pack, word)))];
+    return tiles.map((text) => ({
+      text,
+      sound: pack.keys.find((key) => key.text === text)?.sound ?? text,
+    }));
+  }, [category, pack]);
   const allKeys = useMemo(
-    () => pack.keys.map((key) => ({ ml: key.text, sound: key.sound })),
-    [pack],
+    () => playableKeys.map((key) => ({ ml: key.text, sound: key.sound })),
+    [playableKeys],
   );
   const getSound = useCallback(
     (tile: string) => pack.keys.find((key) => key.text === tile)?.sound ?? tile,
     [pack],
   );
-  const guessWordTiles = useMemo(
-    () => pack.dictionary.map((word) => splitWord(pack, word)),
-    [pack],
-  );
+  const guessWordTiles = useMemo(() => {
+    const words = [
+      ...(category.dictionary ?? pack.dictionary),
+      ...category.puzzles.map((puzzle) => puzzle.word),
+    ];
+    return [...new Set(words)].map((word) => splitWord(pack, word));
+  }, [category, pack]);
   const storageKey = `${STORAGE_KEY}-${pack.id}-${category.id}-${puzzleId}`;
   const [state, setState] = useState<PersistedState>(() => emptyState(puzzleId));
   const [message, setMessage] = useState("");
@@ -324,8 +340,8 @@ export default function Home() {
     [answer.word, pack, settledGuesses],
   );
   const positionKeyboardStates = useMemo(
-    () => getPositionKeyboardStates(pack, settledGuesses, answer.word),
-    [answer.word, pack, settledGuesses],
+    () => getPositionKeyboardStates(pack, settledGuesses, answer.word, playableKeys),
+    [answer.word, pack, playableKeys, settledGuesses],
   );
 
   // The drum keeps the latest evaluated guess visible. The attempt marker
@@ -611,12 +627,12 @@ export default function Home() {
   }
 
   return (
-    <main className={`game-main ${dailyReady ? "" : "daily-loading"}`}>
+    <main className={`game-main ${dailyReady ? "" : "daily-loading"} ${category.theme === "onam" ? "theme-onam" : ""}`}>
       {showConfetti ? (
         <div className="confetti-burst" aria-hidden="true">
           {CONFETTI_PIECES.map((piece, index) => (
             <span
-              className="confetti-piece"
+              className={`confetti-piece ${category.theme === "onam" ? "flower-petal" : ""}`}
               key={`confetti-${index}`}
               style={{
                 "--confetti-delay": piece.delay,
@@ -625,7 +641,9 @@ export default function Home() {
                 "--confetti-rotation": piece.rotation,
                 "--confetti-spin": piece.spin,
               } as CSSProperties}
-            />
+            >
+              {category.theme === "onam" ? ["🌼", "🌸", "🏵️", "🌺"][index % 4] : null}
+            </span>
           ))}
         </div>
       ) : null}

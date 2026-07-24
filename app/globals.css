@@ -67,6 +67,23 @@ body {
   visibility: hidden;
 }
 
+.game-main.theme-onam {
+  background-attachment: scroll, fixed;
+  background-image:
+    linear-gradient(180deg, rgba(3, 18, 10, 0.2), rgba(2, 11, 7, 0.44)),
+    url("/onam-pookkalam.jpg");
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: auto, cover;
+  isolation: isolate;
+  position: relative;
+}
+
+.theme-onam .game-goal,
+.theme-onam .depth-panel {
+  backdrop-filter: blur(9px);
+}
+
 .site-shell {
   position: relative;
   z-index: 1;
@@ -1687,6 +1704,25 @@ button {
 .confetti-piece:nth-child(4n) {
   height: 9px;
   width: 13px;
+}
+
+.confetti-piece.flower-petal,
+.confetti-piece.flower-petal:nth-child(n) {
+  background: transparent;
+  border-radius: 0;
+  filter: drop-shadow(0 2px 4px rgba(45, 18, 0, 0.4));
+  font-size: 1.35rem;
+  height: auto;
+  line-height: 1;
+  width: auto;
+}
+
+.confetti-piece.flower-petal:nth-child(3n) {
+  font-size: 1rem;
+}
+
+.confetti-piece.flower-petal:nth-child(4n) {
+  font-size: 1.65rem;
 }
 
 @keyframes confetti-fall {

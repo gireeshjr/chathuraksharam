@@ -15,6 +15,9 @@ export type Category = {
   label: string;
   icon: string;
   puzzles: Puzzle[];
+  dictionary?: string[];
+  deriveKeysFromPuzzles?: boolean;
+  theme?: "onam";
   provenance?: { model: string; generatedAt: string };
 };
 export type LanguagePack = {
@@ -60,10 +63,7 @@ function normalizePack(raw: RawPack): LanguagePack {
       : raw.keys;
   const pack: LanguagePack = { ...raw, keys };
   const keySet = new Set(keys.map((key) => key.text));
-  const puzzleWords = pack.categories.flatMap((category) =>
-    category.puzzles.map((puzzle) => puzzle.word),
-  );
-  const dictionary = [...new Set([...pack.dictionary, ...puzzleWords])];
+  const dictionary = [...new Set(pack.dictionary)];
 
   for (const word of dictionary) {
     const tiles = segment(pack.locale, word);
@@ -75,6 +75,29 @@ function normalizePack(raw: RawPack): LanguagePack {
     const missing = [...new Set(tiles.filter((tile) => !keySet.has(tile)))];
     if (missing.length > 0) {
       throw new Error(`${pack.id} entry ${word} needs key(s): ${missing.join(", ")}.`);
+    }
+  }
+
+  for (const category of pack.categories) {
+    const categoryWords = [
+      ...category.puzzles.map((puzzle) => puzzle.word),
+      ...(category.dictionary ?? []),
+    ];
+    for (const word of categoryWords) {
+      const tiles = segment(pack.locale, word);
+      if (tiles.length !== pack.wordSize) {
+        throw new Error(
+          `${pack.id}/${category.id} entry ${word} has ${tiles.length} tiles; expected ${pack.wordSize}.`,
+        );
+      }
+      if (!category.deriveKeysFromPuzzles) {
+        const missing = [...new Set(tiles.filter((tile) => !keySet.has(tile)))];
+        if (missing.length > 0) {
+          throw new Error(
+            `${pack.id}/${category.id} entry ${word} needs key(s): ${missing.join(", ")}.`,
+          );
+        }
+      }
     }
   }
 

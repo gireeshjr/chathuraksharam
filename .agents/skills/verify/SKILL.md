@@ -107,6 +107,10 @@ not by curling HTML.
   orange on every unsolved reel except positions where it was already tried
   and marked misplaced. Known-absent keys remain dim.
 - Globally locked letters preview live on the drum's active face.
+- Malayalam includes a separate `onam` category with a derived festival-only
+  reel alphabet and dictionary. Selecting it adds `.theme-onam`, loads
+  `/onam-pookkalam.jpg`, and winning renders 44 `.flower-petal` pieces with
+  no regular confetti pieces.
 - Test assertions now expect "Malayalam letter reels" and "Pull the lever"
   instead of the old keyboard strings.
 - NEVER add `setPointerCapture` to a container whose children are buttons:

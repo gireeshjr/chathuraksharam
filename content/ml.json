@@ -47,6 +47,36 @@
         { "word": "തരംഗങ്ങൾ", "pronunciation": "tharangangal", "meaning": "waves", "clue": "നീന്തലിലും ജലകായികത്തിലും ചുറ്റുമുള്ള ജലചലനം." },
         { "word": "കിരണങ്ങൾ", "pronunciation": "kiranangal", "meaning": "rays", "clue": "പുറത്തുള്ള കളിയെ പ്രകാശിപ്പിക്കുന്ന സൂര്യരേഖകൾ." }
       ]
+    },
+    {
+      "id": "onam",
+      "label": "ഓണം",
+      "icon": "🌼",
+      "theme": "onam",
+      "deriveKeysFromPuzzles": true,
+      "puzzles": [
+        { "word": "അത്തപ്പൂക്കളം", "pronunciation": "athappookkalam", "meaning": "Atham flower carpet", "clue": "അത്തം മുതൽ മുറ്റത്ത് പൂക്കൾകൊണ്ട് ഒരുക്കുന്ന വർണവട്ടം." },
+        { "word": "സദ്യവിഭവം", "pronunciation": "sadyavibhavam", "meaning": "an Onam feast dish", "clue": "വാഴയിലയിൽ വിളമ്പുന്ന ഓണവിരുന്നിലെ ഒരു രുചിക്കൂട്ട്." },
+        { "word": "പായസങ്ങൾ", "pronunciation": "payasangal", "meaning": "sweet puddings", "clue": "സദ്യയുടെ അവസാനം മധുരമായി വിളമ്പുന്ന വിഭവങ്ങൾ." },
+        { "word": "ഉപ്പേരികൾ", "pronunciation": "upperikal", "meaning": "fried crisps", "clue": "സദ്യയിലയിൽ ആദ്യം ഇടുന്ന വറുത്ത കറകറപ്പുകൾ." },
+        { "word": "പപ്പടങ്ങൾ", "pronunciation": "pappadangal", "meaning": "papadums", "clue": "സദ്യയ്ക്കൊപ്പം പൊരിച്ചുവിളമ്പുന്ന വട്ടത്തിലുള്ള കറകറപ്പ്." },
+        { "word": "നിലവിളക്ക്", "pronunciation": "nilavilakku", "meaning": "traditional standing lamp", "clue": "ആഘോഷവേളയിൽ തിരിതെളിയിക്കുന്ന കേരളീയ പിച്ചളദീപം." },
+        { "word": "കസവുമുണ്ട്", "pronunciation": "kasavumundu", "meaning": "kasavu mundu", "clue": "സ്വർണക്കരയുള്ള പരമ്പരാഗത കേരളീയ പുരുഷവസ്ത്രം." },
+        { "word": "കസവുസാരി", "pronunciation": "kasavusari", "meaning": "kasavu sari", "clue": "ഓണക്കാലത്ത് ധരിക്കുന്ന സ്വർണക്കരയുള്ള കേരളീയ വസ്ത്രം." },
+        { "word": "പൂവിളികൾ", "pronunciation": "poovilikal", "meaning": "festive flower calls", "clue": "ഓണപ്പാട്ടിനൊപ്പമുള്ള ഉത്സവത്തിന്റെ സന്തോഷവിളികൾ." },
+        { "word": "കൈകൊട്ടിക്കളി", "pronunciation": "kaikottikkali", "meaning": "traditional circle dance", "clue": "സ്ത്രീകൾ വട്ടത്തിൽ നിന്ന് കൈകൊട്ടി അവതരിപ്പിക്കുന്ന നൃത്തം." },
+        { "word": "ഓണസമ്മാനം", "pronunciation": "onasammanam", "meaning": "Onam gift", "clue": "ആഘോഷസ്നേഹത്തിന്റെ ഭാഗമായി പ്രിയപ്പെട്ടവർക്ക് നൽകുന്നത്." },
+        { "word": "ഓണക്കാലത്ത്", "pronunciation": "onakkalathu", "meaning": "during the Onam season", "clue": "ചിങ്ങമാസത്തിലെ ഉത്സവദിനങ്ങളെ സൂചിപ്പിക്കുന്ന കാലപ്രയോഗം." },
+        { "word": "മാവേലിനാട്", "pronunciation": "mavelinadu", "meaning": "the land of Mahabali", "clue": "എല്ലാവരും തുല്യരായി കഴിഞ്ഞുവെന്ന് പാട്ടിൽ പറയുന്ന രാജ്യം." },
+        { "word": "സദ്യയൊരുക്കം", "pronunciation": "sadyayorukkam", "meaning": "feast preparation", "clue": "വാഴയിലയും പല വിഭവങ്ങളും തയ്യാറാക്കുന്ന കൂട്ടായ പ്രവൃത്തി." },
+        { "word": "തുമ്പപ്പൂക്കളം", "pronunciation": "thumbappookkalam", "meaning": "pookkalam with thumba flowers", "clue": "ചെറിയ വെളുത്ത നാട്ടുപൂക്കൾ ചേർത്ത് ഒരുക്കുന്ന പൂവട്ടം." },
+        { "word": "ചിങ്ങപ്പുലരി", "pronunciation": "chingappulari", "meaning": "a Chingam dawn", "clue": "ഓണക്കാലത്തെ മലയാളമാസത്തിൽ ഉദിക്കുന്ന ഉത്സവപ്രഭാതം." },
+        { "word": "കസവുവേഷം", "pronunciation": "kasavuvesham", "meaning": "traditional kasavu attire", "clue": "വെള്ളയും സ്വർണനിറവും ചേർന്ന ഓണാഘോഷ വസ്ത്രധാരണം." },
+        { "word": "കാളൻകറി", "pronunciation": "kalankari", "meaning": "kalan curry", "clue": "തൈരും തേങ്ങയും ചേർത്ത് സദ്യയ്ക്കൊരുക്കുന്ന കട്ടിയുള്ള കറി." },
+        { "word": "ഓലൻകറി", "pronunciation": "olankari", "meaning": "olan curry", "clue": "കുമ്പളങ്ങയും തേങ്ങാപ്പാലും ചേർന്ന മൃദുവായ സദ്യക്കറി." },
+        { "word": "പഴംനുറുക്ക്", "pronunciation": "pazhamnurukku", "meaning": "sliced cooked plantain", "clue": "നേന്ത്രപ്പഴം കഷണങ്ങളാക്കി ഒരുക്കുന്ന മധുരമുള്ള വിഭവം." }
+      ],
+      "dictionary": ["അത്തപ്പൂക്കളം", "സദ്യവിഭവം", "പായസങ്ങൾ", "ഉപ്പേരികൾ", "പപ്പടങ്ങൾ", "നിലവിളക്ക്", "കസവുമുണ്ട്", "കസവുസാരി", "പൂവിളികൾ", "കൈകൊട്ടിക്കളി", "ഓണസമ്മാനം", "ഓണക്കാലത്ത്", "മാവേലിനാട്", "സദ്യയൊരുക്കം", "തുമ്പപ്പൂക്കളം", "ചിങ്ങപ്പുലരി", "കസവുവേഷം", "കാളൻകറി", "ഓലൻകറി", "പഴംനുറുക്ക്"]
     }
   ],
   "dictionary": ["കവിതകൾ", "പുലരികൾ", "കനിവുകൾ", "കിരണങ്ങൾ", "മനസ്സുകൾ", "ദിനകരൻ", "മരങ്ങളിൽ", "വഴികളിൽ", "നഗരങ്ങൾ", "വിരലുകൾ", "മലരുകൾ", "നിറവുകൾ", "നിലാവുകൾ", "അരികുകൾ", "പുതുമകൾ", "തണലുകൾ", "മധുരങ്ങൾ", "നിഴലുകൾ", "തരംഗങ്ങൾ", "ചുവടുകൾ", "വരവുകൾ", "കനവുകൾ", "നിനവുകൾ", "കുരുവികൾ", "കതകുകൾ", "പുഴകളിൽ", "തളിരുകൾ", "അലകളിൽ", "കനലുകൾ", "നദികളിൽ", "വരികളിൽ", "കനികളിൽ", "കരകളിൽ", "ചുവരുകൾ", "ചുമടുകൾ", "അകലങ്ങൾ", "അരുവികൾ", "നിലങ്ങളിൽ", "ഗണങ്ങളിൽ", "നടുവിരൽ", "അണകളിൽ", "ദിനങ്ങളിൽ", "കരിമണൽ", "കരിനിഴൽ", "അരണകൾ", "മറകളിൽ", "തറകളിൽ", "നിരകളിൽ", "വിലകളിൽ", "കലകളിൽ", "കുറവുകൾ", "ചുഴികളിൽ", "വരകളിൽ", "പുരങ്ങളിൽ", "പുരികങ്ങൾ", "മലകളിൽ", "മരങ്ങളിൻ", "കിളികളിൽ"]

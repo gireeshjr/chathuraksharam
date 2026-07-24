@@ -32,15 +32,26 @@ export function validateWords(pack, words) {
 }
 
 export function validatePack(pack) {
-  const puzzleWords = pack.categories.flatMap((category) =>
-    category.puzzles.map((puzzle) => puzzle.word),
-  );
-  const errors = validateWords(pack, [...pack.dictionary, ...puzzleWords]);
+  const errors = validateWords(pack, pack.dictionary);
   if (!pack.title?.trim()) errors.push("pack missing title");
   for (const field of ["lock", "pick"]) {
     if (!pack.guide?.[field]?.trim()) errors.push(`guide missing ${field}`);
   }
   for (const category of pack.categories) {
+    const categoryWords = [
+      ...category.puzzles.map((puzzle) => puzzle.word),
+      ...(category.dictionary ?? []),
+    ];
+    if (category.deriveKeysFromPuzzles) {
+      for (const word of categoryWords) {
+        const tiles = splitWord(pack, word);
+        if (tiles.length !== pack.wordSize) {
+          errors.push(`${category.id}/${word}: ${tiles.length} tiles, expected ${pack.wordSize}`);
+        }
+      }
+    } else {
+      errors.push(...validateWords(pack, categoryWords));
+    }
     for (const puzzle of category.puzzles) {
       for (const field of ["word", "pronunciation", "meaning", "clue"]) {
         if (!puzzle[field]?.trim()) errors.push(`${category.id}: puzzle missing ${field}`);
