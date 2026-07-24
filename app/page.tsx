@@ -146,6 +146,7 @@ function getInitialState(puzzleId: number, storageKey: string): PersistedState {
 
 function getShareText(
   pack: LanguagePack,
+  categoryId: string,
   categoryLabel: string,
   state: PersistedState,
   answer: Puzzle,
@@ -164,8 +165,15 @@ function getShareText(
     ...rows,
     `🔥 ${state.streak} round streak`,
     `Can you solve a ${pack.name} word?`,
-    window.location.origin,
+    `${window.location.origin}/?language=${encodeURIComponent(pack.id)}&category=${encodeURIComponent(categoryId)}`,
   ].join("\n");
+}
+
+function updateStreamUrl(languageId: string, categoryId: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("language", languageId);
+  url.searchParams.set("category", categoryId);
+  window.history.replaceState(null, "", url);
 }
 
 function getKeyboardState(
@@ -324,6 +332,19 @@ export default function Home() {
     // after hydration. This avoids freezing the deployment day's answer into
     // the HTML or producing a server/client mismatch after midnight.
     /* eslint-disable react-hooks/set-state-in-effect */
+    const params = new URLSearchParams(window.location.search);
+    const requestedLanguage = params.get("language");
+    const requestedCategory = params.get("category");
+    const requestedPack =
+      LANGUAGE_PACKS.find((item) => item.id === requestedLanguage) ??
+      getPack("en");
+    const requestedStream =
+      requestedPack.categories.find((item) => item.id === requestedCategory) ??
+      requestedPack.categories.find((item) => item.id === "everyday") ??
+      requestedPack.categories[0];
+
+    setLanguageId(requestedPack.id);
+    setCategoryId(requestedStream.id);
     setPuzzleId(getDailyPuzzleId());
     setDailyReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -586,7 +607,7 @@ export default function Home() {
   }
 
   async function shareResult() {
-    const text = getShareText(pack, category.label, state, answer);
+    const text = getShareText(pack, category.id, category.label, state, answer);
     try {
       if (navigator.share) {
         await navigator.share({ text, title: pack.title });
@@ -620,12 +641,14 @@ export default function Home() {
   function chooseLanguage(id: string) {
     setLanguageId(id);
     setCategoryId("everyday");
+    updateStreamUrl(id, "everyday");
     setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
   }
 
   function chooseCategory(id: string) {
     setCategoryId(id);
+    updateStreamUrl(pack.id, id);
     setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
   }
