@@ -628,7 +628,6 @@ export default function Home() {
     setCategoryId(id);
     setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
-    setShowStreamMenu(false);
   }
 
   return (
@@ -758,6 +757,13 @@ export default function Home() {
                       </button>
                     ))}
                   </div>
+                  <button
+                    className="stream-menu-done"
+                    onClick={() => setShowStreamMenu(false)}
+                    type="button"
+                  >
+                    Done
+                  </button>
                 </div>
               ) : null}
             </div>

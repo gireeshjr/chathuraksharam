@@ -275,6 +275,23 @@ button {
   color: #f4fbf5;
 }
 
+.stream-menu-done {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border: 1px solid rgba(255, 222, 145, 0.55);
+  border-radius: 10px;
+  color: #172116;
+  font-size: 0.72rem;
+  font-weight: 950;
+  margin-top: 4px;
+  min-height: 40px;
+  text-transform: uppercase;
+}
+
+.stream-menu-done:hover {
+  box-shadow: 0 4px 16px rgba(224, 170, 75, 0.28);
+  transform: translateY(-1px);
+}
+
 /* ------------------------------------------------------------------ */
 /* 3D stage: pointer-driven tilt with translateZ layering              */
 /* ------------------------------------------------------------------ */
