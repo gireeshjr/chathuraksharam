@@ -286,6 +286,7 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [showStreamMenu, setShowStreamMenu] = useState(false);
+  const [hintReplayKey, setHintReplayKey] = useState(0);
 
   useEffect(() => {
     document.documentElement.lang = pack.locale;
@@ -555,6 +556,7 @@ export default function Home() {
         );
         later(() => setShowResultModal(true), 750);
       } else {
+        setHintReplayKey((current) => current + 1);
         setMessage("");
         later(() => sfx.roll(), 180);
       }
@@ -589,18 +591,21 @@ export default function Home() {
 
   function nextPuzzle() {
     setShowResultModal(false);
+    setHintReplayKey(0);
     setPuzzleId((current) => current + 1);
   }
 
   function chooseLanguage(id: string) {
     setLanguageId(id);
     setCategoryId("everyday");
+    setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
     setShowStreamMenu(false);
   }
 
   function chooseCategory(id: string) {
     setCategoryId(id);
+    setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
     setShowStreamMenu(false);
   }
@@ -764,6 +769,7 @@ export default function Home() {
                 currentAttempt={currentAttempt}
                 hint={answer.clue}
                 hintLabel={pack.hintLabel}
+                hintReplayKey={hintReplayKey}
                 key={`drum-${pack.id}-${category.id}-${puzzleId}`}
                 rows={drumRows}
                 shakeRow={shakeRow}

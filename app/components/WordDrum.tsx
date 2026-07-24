@@ -2,6 +2,7 @@
 
 import {
   CSSProperties,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -121,6 +122,7 @@ export default function WordDrum({
   soundFor,
   hint,
   hintLabel = "Today's hint",
+  hintReplayKey = 0,
 }: {
   rows: DrumRow[];
   activeRow: number;
@@ -132,17 +134,19 @@ export default function WordDrum({
   /** Meaning clue shown as a tag hanging under the drum. */
   hint?: string;
   hintLabel?: string;
+  /** Changes after a wrong, non-final guess to briefly reopen the hint. */
+  hintReplayKey?: number;
 }) {
   const [viewIndex, setViewIndex] = useState(activeRow);
   const [hintOpen, setHintOpen] = useState(true);
   const hintTimer = useRef<number | null>(null);
   const returnTimer = useRef<number | null>(null);
 
-  const revealHint = () => {
+  const revealHint = useCallback((duration = 5200) => {
     setHintOpen(true);
     if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
-    hintTimer.current = window.setTimeout(() => setHintOpen(false), 5200);
-  };
+    hintTimer.current = window.setTimeout(() => setHintOpen(false), duration);
+  }, []);
 
   useEffect(() => {
     hintTimer.current = window.setTimeout(() => setHintOpen(false), 2200);
@@ -150,6 +154,12 @@ export default function WordDrum({
       if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (hintReplayKey <= 0) return;
+    const replay = window.setTimeout(() => revealHint(4200), 0);
+    return () => window.clearTimeout(replay);
+  }, [hintReplayKey, revealHint]);
 
   useEffect(() => {
     return () => {

@@ -92,7 +92,8 @@ not by curling HTML.
   must be real, kid-safe Malayalam — the build throws if one isn't exactly
   5 keyboard aksharams.
 - The hint is a `.drum-hint` drawer under the drum. It briefly opens on load,
-  collapses to a compact trigger, and auto-collapses after every manual reveal.
+  collapses to a compact trigger, reopens for about 4.2 seconds after each
+  wrong non-final reveal, then collapses for the new turn.
 - The localized `.game-goal` replays its entrance animation whenever the
   language, category, or puzzle changes.
 - The board is a pentagonal drum (`.drum-inner`); face i is front when its
