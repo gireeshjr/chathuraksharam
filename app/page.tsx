@@ -861,7 +861,7 @@ export default function Home() {
             >
               <section
                 aria-labelledby="puzzle-clue-label"
-                className="puzzle-clue"
+                className="puzzle-clue arriving"
                 key={`clue-${pack.id}-${category.id}-${puzzleId}`}
               >
                 <strong id="puzzle-clue-label">{pack.hintLabel}</strong>

@@ -642,15 +642,18 @@ button {
 
 .game-goal strong { color: var(--gold-bright); }
 
+.puzzle-clue.arriving,
 .game-goal.arriving {
-  animation: goal-float-in 3.4s cubic-bezier(0.16, 0.72, 0.2, 1) both;
+  animation: puzzle-content-arrive 620ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
 }
 
-@keyframes goal-float-in {
-  0% { opacity: 0; transform: translateY(-55vh) scale(0.94); }
-  22% { opacity: 1; }
-  78% { transform: translateY(7px) scale(1); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+.game-goal.arriving {
+  animation-delay: 90ms;
+}
+
+@keyframes puzzle-content-arrive {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ------------------------------------------------------------------ */
@@ -1985,7 +1988,11 @@ button {
     animation: none;
   }
 
-  .game-goal.arriving { animation-duration: 0.01ms; }
+  .puzzle-clue.arriving,
+  .game-goal.arriving {
+    animation-delay: 0ms;
+    animation-duration: 0.01ms;
+  }
 
   .tilt-body {
     transform: none !important;
