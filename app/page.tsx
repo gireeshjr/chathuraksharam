@@ -297,6 +297,14 @@ export default function Home() {
     () => playableKeys.map((key) => ({ ml: key.text, sound: key.sound })),
     [playableKeys],
   );
+  const pickerKeys = useMemo(() => {
+    const collator = new Intl.Collator(pack.locale, { sensitivity: "base" });
+    return [...allKeys].sort(
+      (a, b) =>
+        collator.compare(a.ml, b.ml) ||
+        a.sound.localeCompare(b.sound, pack.locale),
+    );
+  }, [allKeys, pack.locale]);
   const getSound = useCallback(
     (tile: string) => pack.keys.find((key) => key.text === tile)?.sound ?? tile,
     [pack],
@@ -331,6 +339,32 @@ export default function Home() {
   const timeoutsRef = useRef<number[]>([]);
   const autoCheckRef = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const streamMenuRef = useRef<HTMLDivElement>(null);
+  const streamTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showStreamMenu) return;
+
+    const closeMenu = (restoreFocus: boolean) => {
+      setShowStreamMenu(false);
+      if (restoreFocus) window.setTimeout(() => streamTriggerRef.current?.focus(), 0);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closeMenu(true);
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (!streamMenuRef.current?.contains(event.target as Node)) closeMenu(false);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [showStreamMenu]);
 
   useLayoutEffect(() => {
     // The route is statically generated, so choose the live UTC round only
@@ -787,12 +821,14 @@ export default function Home() {
             <p className="game-chip">#{puzzleId + 1}</p>
           </div>
           <div className="header-controls flex items-center gap-3">
-            <div className="stream-menu-wrap">
+            <div className="stream-menu-wrap" ref={streamMenuRef}>
               <button
+                aria-controls="stream-menu"
                 aria-expanded={showStreamMenu}
                 aria-haspopup="menu"
                 className={`stream-trigger ${showStreamMenu ? "active" : ""}`}
                 onClick={() => setShowStreamMenu((open) => !open)}
+                ref={streamTriggerRef}
                 type="button"
               >
                 <span>{pack.nativeName}</span>
@@ -800,7 +836,18 @@ export default function Home() {
                 <i aria-hidden="true">⌄</i>
               </button>
               {showStreamMenu ? (
-                <div aria-label="Choose language and category" className="stream-menu" role="menu">
+                <div aria-label="Choose language and category" className="stream-menu" id="stream-menu" role="menu">
+                  <button
+                    aria-label="Close language and category selector"
+                    className="stream-menu-close"
+                    onClick={() => {
+                      setShowStreamMenu(false);
+                      window.setTimeout(() => streamTriggerRef.current?.focus(), 0);
+                    }}
+                    type="button"
+                  >
+                    ✕
+                  </button>
                   <span className="stream-menu-label">Language</span>
                   <div className="stream-menu-grid languages">
                     {LANGUAGE_PACKS.map((language) => (
@@ -897,6 +944,7 @@ export default function Home() {
                 positionKeyboardStates={positionKeyboardStates}
                 key={`machine-${pack.id}-${category.id}-${puzzleId}`}
                 keys={allKeys}
+                pickerKeys={pickerKeys}
                 guideLabels={pack.guide}
                 onChange={handleMachineChange}
                 presetLetter={answerTiles[0]}

@@ -172,6 +172,7 @@ const ReelStripItems = memo(function ReelStripItems({
 
 export default function SlotMachine({
   keys,
+  pickerKeys,
   keyboardState,
   positionKeyboardStates,
   disabled,
@@ -185,6 +186,8 @@ export default function SlotMachine({
   onChange,
 }: {
   keys: ReadonlyArray<KeyDef>;
+  /** Stable, language-natural order for the visible letter picker. */
+  pickerKeys: ReadonlyArray<KeyDef>;
   keyboardState: Map<string, TileState>;
   /** Letter knowledge scoped to each reel position. */
   positionKeyboardStates: ReadonlyArray<Map<string, TileState>>;
@@ -248,6 +251,7 @@ export default function SlotMachine({
   const [leverPulled, setLeverPulled] = useState(false);
   const [interacted, setInteracted] = useState(false);
   const [guideStep, setGuideStep] = useState<GuideStep>(null);
+  const reelButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const timeouts = useRef<number[]>([]);
   const dragRef = useRef<{
     reel: number;
@@ -461,6 +465,14 @@ export default function SlotMachine({
     setPickerReel(index);
   }
 
+  function closePicker(restoreFocus = true) {
+    const index = pickerReel;
+    setPickerReel(null);
+    if (restoreFocus && index !== null) {
+      window.setTimeout(() => reelButtonRefs.current[index]?.focus(), 0);
+    }
+  }
+
   function openPicker(index: number) {
     if (dragReel !== null) return;
     showPicker(index);
@@ -494,7 +506,7 @@ export default function SlotMachine({
     return () => window.removeEventListener("resize", position);
   }, [pickerReel]);
 
-  function pickLetter(letter: string) {
+  function pickLetter(letter: string, advance = true) {
     const index = pickerReel;
     if (index === null || disabled || spinning || locked[index]) return;
     const target = reelSeq.findIndex((key) => key.ml === letter);
@@ -511,7 +523,7 @@ export default function SlotMachine({
     if (delta > seqLength / 2) delta -= seqLength;
     if (delta < -seqLength / 2) delta += seqLength;
     if (delta === 0) {
-      setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+      if (advance) setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
       return;
     }
 
@@ -527,9 +539,110 @@ export default function SlotMachine({
         return done;
       });
       onChange(next.map((p) => letterAt(p).ml), locked, "dial");
-      setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+      if (advance) setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
     }, 170);
   }
+
+  useEffect(() => {
+    if (pickerReel === null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        document.querySelector(".stream-menu") ||
+        target?.closest("input, textarea, select, [contenteditable='true'], .stream-menu")
+      ) return;
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closePicker(true);
+        return;
+      }
+
+      if (/^[1-5]$/.test(event.key)) {
+        event.preventDefault();
+        showPicker(Number(event.key) - 1);
+        return;
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        showPicker((pickerReel + direction + REEL_COUNT) % REEL_COUNT);
+        return;
+      }
+
+      const activeLetter = letterAt(positions[pickerReel]).ml;
+      if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        const current = Math.max(0, pickerKeys.findIndex((key) => key.ml === activeLetter));
+        const direction = event.key === "ArrowDown" ? 1 : -1;
+        const next = (current + direction + pickerKeys.length) % pickerKeys.length;
+        pickLetter(pickerKeys[next].ml, false);
+        return;
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        pickLetter(activeLetter);
+        return;
+      }
+
+      if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        const typed = event.key.toLocaleLowerCase();
+        const matches = pickerKeys.filter(
+          (key) =>
+            key.ml.toLocaleLowerCase() === typed ||
+            key.sound.toLocaleLowerCase().startsWith(typed),
+        );
+        if (matches.length > 0) {
+          event.preventDefault();
+          const currentMatch = matches.findIndex((key) => key.ml === activeLetter);
+          pickLetter(matches[(currentMatch + 1) % matches.length].ml, false);
+        }
+      }
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".picker-pop, .reel-dial")) closePicker(false);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+    // Handlers intentionally refresh with live reel and picker state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerKeys, pickerReel, positions]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        disabled ||
+        spinning ||
+        pickerReel !== null ||
+        document.querySelector(".stream-menu") ||
+        target?.closest("input, textarea, select, [contenteditable='true'], .stream-menu")
+      ) return;
+
+      if (/^[1-5]$/.test(event.key)) {
+        event.preventDefault();
+        showPicker(Number(event.key) - 1);
+      } else if (event.code === "Space" && !target?.closest("button, a")) {
+        event.preventDefault();
+        pullLever();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // Handler intentionally refreshes with live machine state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disabled, pickerReel, positions, spinning]);
 
   const onDialPointerDown = (
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -702,6 +815,10 @@ export default function SlotMachine({
                       if (event.detail === 0) openPicker(i);
                     }}
                     onPointerDown={(event) => onDialPointerDown(event, i)}
+                    ref={(element) => {
+                      reelButtonRefs.current[i] = element;
+                    }}
+                    title={`Press ${i + 1} to choose this reel`}
                     type="button"
                   >
                     <div className="reel-window">
@@ -745,6 +862,7 @@ export default function SlotMachine({
           </span>
           <span className="lever-label">PULL</span>
         </button>
+        <span className="sr-only">Press Space to pull the lever.</span>
       </div>
 
       <div className="machine-lock-wrap">
@@ -779,14 +897,20 @@ export default function SlotMachine({
             <button
               aria-label="Close the letter picker"
               className="picker-close"
-              onClick={() => setPickerReel(null)}
+              onClick={() => closePicker(true)}
               type="button"
             >
               ✕
             </button>
           </div>
+          <p
+            aria-label="Keyboard shortcuts: numbers 1 through 5 choose a reel, arrow keys move, Enter accepts, and Escape closes"
+            className="picker-shortcuts"
+          >
+            1–5 · ← → · ↑ ↓ · Enter · Esc
+          </p>
           <div className="picker-grid">
-            {keys.map((key) => {
+            {pickerKeys.map((key) => {
               const status =
                 positionKeyboardStates[pickerReel]?.get(key.ml) ?? "empty";
               const active = letterAt(positions[pickerReel]).ml === key.ml;
