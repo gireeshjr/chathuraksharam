@@ -14,6 +14,8 @@ export type Category = {
   id: string;
   label: string;
   icon: string;
+  hidden?: boolean;
+  expiresAt?: string;
   puzzles: Puzzle[];
   dictionary?: string[];
   deriveKeysFromPuzzles?: boolean;
@@ -117,4 +119,8 @@ export function splitWord(pack: LanguagePack, word: string) {
 
 export function getPack(id: string) {
   return LANGUAGE_PACKS.find((pack) => pack.id === id) ?? LANGUAGE_PACKS[0];
+}
+
+export function isCategoryAvailable(category: Category, now = Date.now()) {
+  return !category.expiresAt || now < Date.parse(category.expiresAt);
 }

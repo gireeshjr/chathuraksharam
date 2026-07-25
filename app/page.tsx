@@ -15,6 +15,8 @@ import SlotMachine, { MachineEvent } from "./components/SlotMachine";
 import WordDrum, { DrumRow } from "./components/WordDrum";
 import {
   getPack,
+  isCategoryAvailable,
+  Category,
   LANGUAGE_PACKS,
   LanguagePack,
   Puzzle,
@@ -268,10 +270,14 @@ export default function Home() {
   const [categoryId, setCategoryId] = useState("everyday");
   const [puzzleId, setPuzzleId] = useState(0);
   const [dailyReady, setDailyReady] = useState(false);
+  const [customCategory, setCustomCategory] = useState<Category | null>(null);
   const pack = useMemo(() => getPack(languageId), [languageId]);
   const category = useMemo(
-    () => pack.categories.find((item) => item.id === categoryId) ?? pack.categories[0],
-    [categoryId, pack],
+    () =>
+      (categoryId === "custom" ? customCategory : null) ??
+      pack.categories.find((item) => item.id === categoryId) ??
+      pack.categories[0],
+    [categoryId, customCategory, pack],
   );
   const answer = category.puzzles[puzzleId % category.puzzles.length];
   const answerTiles = useMemo(() => splitWord(pack, answer.word), [answer.word, pack]);
@@ -335,15 +341,63 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     const requestedLanguage = params.get("language");
     const requestedCategory = params.get("category");
+    const customAlias = requestedLanguage === "custom";
+    const customRequested =
+      customAlias ||
+      (requestedLanguage === "ml" && requestedCategory === "custom");
+
+    const loadDefault = () => {
+      window.history.replaceState(null, "", window.location.pathname);
+      setCustomCategory(null);
+      setLanguageId("en");
+      setCategoryId("everyday");
+      setPuzzleId(getDailyPuzzleId());
+      setDailyReady(true);
+    };
+
+    if (customRequested) {
+      const controller = new AbortController();
+      void fetch("/api/custom-pack", {
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error("Custom pack unavailable");
+          return response.json() as Promise<Category>;
+        })
+        .then((loadedCategory) => {
+          setCustomCategory(loadedCategory);
+          setLanguageId("ml");
+          setCategoryId("custom");
+          setPuzzleId(getDailyPuzzleId());
+          setDailyReady(true);
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+          loadDefault();
+        });
+      return () => controller.abort();
+    }
+
     const requestedPack =
       LANGUAGE_PACKS.find((item) => item.id === requestedLanguage) ??
       getPack("en");
+    const requestedCategoryMatch = requestedPack.categories.find(
+      (item) => item.id === requestedCategory,
+    );
+    const expiredRequest =
+      requestedCategoryMatch && !isCategoryAvailable(requestedCategoryMatch);
+    const activePack = expiredRequest ? getPack("en") : requestedPack;
     const requestedStream =
-      requestedPack.categories.find((item) => item.id === requestedCategory) ??
-      requestedPack.categories.find((item) => item.id === "everyday") ??
-      requestedPack.categories[0];
+      (!expiredRequest ? requestedCategoryMatch : undefined) ??
+      activePack.categories.find((item) => item.id === "everyday") ??
+      activePack.categories[0];
 
-    setLanguageId(requestedPack.id);
+    if (expiredRequest) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+
+    setLanguageId(activePack.id);
     setCategoryId(requestedStream.id);
     setPuzzleId(getDailyPuzzleId());
     setDailyReady(true);
@@ -768,17 +822,19 @@ export default function Home() {
                   </div>
                   <span className="stream-menu-label">Category</span>
                   <div className="stream-menu-grid categories">
-                    {pack.categories.map((item) => (
-                      <button
-                        aria-pressed={item.id === category.id}
-                        className={item.id === category.id ? "active" : ""}
-                        key={item.id}
-                        onClick={() => chooseCategory(item.id)}
-                        type="button"
-                      >
-                        {item.icon} {item.label}
-                      </button>
-                    ))}
+                    {pack.categories
+                      .filter((item) => !item.hidden && isCategoryAvailable(item))
+                      .map((item) => (
+                        <button
+                          aria-pressed={item.id === category.id}
+                          className={item.id === category.id ? "active" : ""}
+                          key={item.id}
+                          onClick={() => chooseCategory(item.id)}
+                          type="button"
+                        >
+                          {item.icon} {item.label}
+                        </button>
+                      ))}
                   </div>
                   <button
                     className="stream-menu-done"

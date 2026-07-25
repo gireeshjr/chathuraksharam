@@ -38,6 +38,9 @@ export function validatePack(pack) {
     if (!pack.guide?.[field]?.trim()) errors.push(`guide missing ${field}`);
   }
   for (const category of pack.categories) {
+    if (category.expiresAt && Number.isNaN(Date.parse(category.expiresAt))) {
+      errors.push(`${category.id}: invalid expiresAt timestamp`);
+    }
     const categoryWords = [
       ...category.puzzles.map((puzzle) => puzzle.word),
       ...(category.dictionary ?? []),
