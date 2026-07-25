@@ -708,7 +708,7 @@ export default function Home() {
   }
 
   return (
-    <main className={`game-main ${dailyReady ? "" : "daily-loading"} ${category.theme === "onam" ? "theme-onam" : ""}`}>
+    <main className={`game-main ${dailyReady ? "" : "daily-loading"} ${category.theme === "onam" ? "theme-onam" : ""} ${category.id === "custom" ? "theme-custom" : ""}`}>
       {showConfetti ? (
         <div className="confetti-burst" aria-hidden="true">
           {CONFETTI_PIECES.map((piece, index) => (

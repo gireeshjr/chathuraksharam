@@ -84,6 +84,23 @@ body {
   backdrop-filter: blur(9px);
 }
 
+.game-main.theme-custom {
+  background-attachment: scroll, fixed;
+  background-image:
+    linear-gradient(180deg, rgba(2, 12, 10, 0.38), rgba(1, 8, 6, 0.66)),
+    url("/custom-pack-bg-v2.jpg");
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: auto, cover;
+  isolation: isolate;
+  position: relative;
+}
+
+.theme-custom .game-goal,
+.theme-custom .depth-panel {
+  backdrop-filter: blur(9px);
+}
+
 .site-shell {
   position: relative;
   z-index: 1;
