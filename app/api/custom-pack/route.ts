@@ -2,12 +2,20 @@ import { Category, getPack, isCategoryAvailable, splitWord } from "../../lib/con
 
 export const dynamic = "force-dynamic";
 
+// Keep the temporary pack available through Saturday in Phoenix. The
+// deployment environment only supplies its content; it does not control the
+// availability window.
+const CUSTOM_PACK_EXPIRES_AT = "2026-07-26T07:00:00.000Z";
+
 function parseCustomCategory(): Category | null {
   const raw = process.env.CUSTOM_PACK_JSON;
   if (!raw) return null;
 
   try {
-    const value = JSON.parse(raw) as Partial<Category>;
+    const value = {
+      ...(JSON.parse(raw) as Partial<Category>),
+      expiresAt: CUSTOM_PACK_EXPIRES_AT,
+    };
     if (
       value.id !== "custom" ||
       value.label !== "Custom" ||
