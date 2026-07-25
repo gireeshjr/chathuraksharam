@@ -595,76 +595,27 @@ button {
   margin-top: 5px;
 }
 
-/* The hint peeks out briefly, then becomes a compact pull-down tag. */
-.drum-hint {
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  border: 1px solid var(--glass-border-dim);
-  border-radius: 0 0 14px 14px;
-  border-top: 0;
+.puzzle-clue {
+  background: linear-gradient(135deg, rgba(224, 170, 75, 0.16), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(224, 170, 75, 0.38);
+  border-radius: 14px;
   color: var(--ink-dim);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   line-height: 1.5;
-  margin: 2px auto 0;
-  max-width: 92%;
-  overflow: hidden;
-  padding: 0;
+  margin: 0 auto 10px;
+  padding: 11px 14px 12px;
   text-align: center;
-  width: fit-content;
-  transition: background 260ms ease, border-radius 260ms ease, box-shadow 260ms ease;
+  width: min(100%, 470px);
 }
 
-.drum-hint:not(.open) {
-  background: rgba(224, 170, 75, 0.08);
-  border-radius: 0 0 999px 999px;
-  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.18);
-}
-
-.drum-hint-trigger {
-  align-items: center;
-  background: transparent;
-  border: 0;
+.puzzle-clue strong {
   color: var(--gold);
-  cursor: pointer;
-  display: flex;
-  font: inherit;
+  display: block;
+  font-size: 0.78rem;
   font-weight: 800;
-  gap: 8px;
-  justify-content: center;
-  padding: 7px 14px;
-  width: 100%;
-}
-
-.drum-hint-trigger:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: -2px;
-}
-
-.drum-hint-reveal {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition: grid-template-rows 520ms cubic-bezier(0.22, 0.8, 0.24, 1), opacity 280ms ease;
-}
-
-.drum-hint-reveal p {
-  min-height: 0;
-  overflow: hidden;
-  padding: 0 16px;
-  transition: padding 520ms cubic-bezier(0.22, 0.8, 0.24, 1);
-}
-
-.drum-hint.open .drum-hint-reveal {
-  grid-template-rows: 1fr;
-  opacity: 1;
-}
-
-.drum-hint.open .drum-hint-reveal p {
-  padding-bottom: 9px;
-}
-
-.drum-hint strong {
-  color: var(--gold);
-  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+  text-transform: uppercase;
 }
 
 .game-goal {
@@ -1864,7 +1815,7 @@ button {
     margin-top: 3px;
   }
 
-  .drum-hint {
+  .puzzle-clue {
     font-size: 0.76rem;
   }
 
@@ -2035,9 +1986,6 @@ button {
   }
 
   .game-goal.arriving { animation-duration: 0.01ms; }
-
-  .drum-hint-reveal,
-  .drum-hint-reveal p { transition: none; }
 
   .tilt-body {
     transform: none !important;

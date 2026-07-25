@@ -6,7 +6,7 @@
   "locale": "en",
   "direction": "ltr",
   "wordSize": 5,
-  "hintLabel": "Today's hint",
+  "hintLabel": "Today's clue",
   "goal": { "label": "Goal", "text": "Find the five-letter English word in five tries. Spin all dials, fine-tune them, then lock all to check." },
   "attemptLabel": "Try",
   "guide": { "lock": "Lock all to check", "pick": "Tap to choose" },

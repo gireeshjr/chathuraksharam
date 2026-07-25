@@ -2,7 +2,6 @@
 
 import {
   CSSProperties,
-  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -120,9 +119,6 @@ export default function WordDrum({
   winWaveRow,
   shakeRow,
   soundFor,
-  hint,
-  hintLabel = "Today's hint",
-  hintReplayKey = 0,
 }: {
   rows: DrumRow[];
   activeRow: number;
@@ -131,35 +127,9 @@ export default function WordDrum({
   winWaveRow: number | null;
   shakeRow: boolean;
   soundFor: (tile: string) => string;
-  /** Meaning clue shown as a tag hanging under the drum. */
-  hint?: string;
-  hintLabel?: string;
-  /** Changes after a wrong, non-final guess to briefly reopen the hint. */
-  hintReplayKey?: number;
 }) {
   const [viewIndex, setViewIndex] = useState(activeRow);
-  const [hintOpen, setHintOpen] = useState(true);
-  const hintTimer = useRef<number | null>(null);
   const returnTimer = useRef<number | null>(null);
-
-  const revealHint = useCallback((duration = 5200) => {
-    setHintOpen(true);
-    if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
-    hintTimer.current = window.setTimeout(() => setHintOpen(false), duration);
-  }, []);
-
-  useEffect(() => {
-    hintTimer.current = window.setTimeout(() => setHintOpen(false), 2200);
-    return () => {
-      if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (hintReplayKey <= 0) return;
-    const replay = window.setTimeout(() => revealHint(4200), 0);
-    return () => window.clearTimeout(replay);
-  }, [hintReplayKey, revealHint]);
 
   useEffect(() => {
     return () => {
@@ -251,22 +221,6 @@ export default function WordDrum({
       <p aria-live="polite" className="attempt-status">
         {attemptLabel} {currentAttempt + 1} / {rows.length}
       </p>
-      {hint ? (
-        <div className={`drum-hint ${hintOpen ? "open" : ""}`}>
-          <button
-            aria-expanded={hintOpen}
-            className="drum-hint-trigger"
-            onClick={() => hintOpen ? setHintOpen(false) : revealHint()}
-            type="button"
-          >
-            <strong>{hintLabel}</strong>
-            <span aria-hidden="true">{hintOpen ? "⌃" : "⌄"}</span>
-          </button>
-          <div className="drum-hint-reveal">
-            <p>{hint}</p>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

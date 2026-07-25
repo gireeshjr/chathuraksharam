@@ -316,7 +316,6 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [showStreamMenu, setShowStreamMenu] = useState(false);
-  const [hintReplayKey, setHintReplayKey] = useState(0);
   const [machineResetKey, setMachineResetKey] = useState(0);
 
   useEffect(() => {
@@ -653,7 +652,6 @@ export default function Home() {
         );
         later(() => setShowResultModal(true), 750);
       } else {
-        setHintReplayKey((current) => current + 1);
         setMessage("");
         later(() => sfx.roll(), 180);
       }
@@ -688,7 +686,6 @@ export default function Home() {
 
   function nextPuzzle() {
     setShowResultModal(false);
-    setHintReplayKey(0);
     setPuzzleId((current) => current + 1);
   }
 
@@ -696,14 +693,12 @@ export default function Home() {
     setLanguageId(id);
     setCategoryId("everyday");
     updateStreamUrl(id, "everyday");
-    setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
   }
 
   function chooseCategory(id: string) {
     setCategoryId(id);
     updateStreamUrl(pack.id, id);
-    setHintReplayKey(0);
     setPuzzleId(getDailyPuzzleId());
   }
 
@@ -864,6 +859,14 @@ export default function Home() {
               aria-label={`${pack.name} ${category.label} word puzzle`}
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
+              <section
+                aria-labelledby="puzzle-clue-label"
+                className="puzzle-clue"
+                key={`clue-${pack.id}-${category.id}-${puzzleId}`}
+              >
+                <strong id="puzzle-clue-label">{pack.hintLabel}</strong>
+                <p>{answer.clue}</p>
+              </section>
               <aside
                 className="game-goal arriving"
                 key={`goal-${pack.id}-${category.id}-${puzzleId}`}
@@ -875,9 +878,6 @@ export default function Home() {
                 activeRow={activeRow}
                 attemptLabel={pack.attemptLabel}
                 currentAttempt={currentAttempt}
-                hint={answer.clue}
-                hintLabel={pack.hintLabel}
-                hintReplayKey={hintReplayKey}
                 key={`drum-${pack.id}-${category.id}-${puzzleId}`}
                 rows={drumRows}
                 shakeRow={shakeRow}
