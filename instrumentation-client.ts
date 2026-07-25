@@ -37,11 +37,7 @@ if (token && isProductionBuild && !isLocalHost) {
     ui_host: "https://us.posthog.com",
     defaults: "2026-01-30",
     capture_exceptions: true,
-    // Session replay serialises DOM snapshots in the page and flushes
-    // every ~30s — the same cadence as the mid-game page reloads seen on
-    // phones (renderer memory kills auto-reload there). Recording stays
-    // off until the reloads are confirmed gone; events still flow.
-    disable_session_recording: true,
+    disable_session_recording: false,
   });
 
   // Lifecycle probe: pagehide marks a clean exit, so finding the marker
