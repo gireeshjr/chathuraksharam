@@ -34,6 +34,68 @@ const AUTO_CHECK_DELAY_MS = 1200;
 const WHATSAPP_CHANNEL_URL =
   "https://whatsapp.com/channel/0029VbDGDdmAe5VjVZMjtH3o";
 
+// Intl.Collator groups Malayalam text by code point, but that can interleave
+// conjuncts with the familiar vowel forms. The picker follows the order taught
+// with the alphabet instead: vowels, consonant families, then each consonant's
+// a/aa/i/ii/u/uu/... forms before its conjuncts and chillus.
+const MALAYALAM_VOWELS = [
+  "അ", "ആ", "ഇ", "ഈ", "ഉ", "ഊ", "ഋ", "ൠ", "ഌ", "ൡ",
+  "എ", "ഏ", "ഐ", "ഒ", "ഓ", "ഔ", "അം", "അഃ",
+];
+const MALAYALAM_CONSONANTS = Array.from(
+  "കഖഗഘങചഛജഝഞടഠഡഢണതഥദധനപഫബഭമയരലവശഷസഹളഴറ",
+);
+const MALAYALAM_VOWEL_SIGNS = [
+  "", "ാ", "ി", "ീ", "ു", "ൂ", "ൃ", "ൄ", "െ", "േ", "ൈ", "ൊ", "ോ", "ൌ", "ം", "ഃ", "്",
+];
+const MALAYALAM_CHILLU_BASE = new Map([
+  ["ൺ", "ണ"], ["ൻ", "ന"], ["ർ", "ര"], ["ൽ", "ല"], ["ൾ", "ള"], ["ൿ", "ക"],
+]);
+
+function malayalamPickerRank(text: string) {
+  const vowel = MALAYALAM_VOWELS.indexOf(text);
+  if (vowel >= 0) return [0, vowel, 0, 0] as const;
+
+  const first = Array.from(text)[0] ?? "";
+  const base = MALAYALAM_CHILLU_BASE.get(first) ?? first;
+  const consonant = MALAYALAM_CONSONANTS.indexOf(base);
+  if (consonant < 0) return [2, Number.MAX_SAFE_INTEGER, 0, 0] as const;
+
+  const isChillu = MALAYALAM_CHILLU_BASE.has(first);
+  const isConjunct = text.includes("്");
+  const sign = MALAYALAM_VOWEL_SIGNS.findIndex(
+    (candidate) => candidate !== "" && text.endsWith(candidate),
+  );
+  return [
+    1,
+    consonant,
+    isChillu ? 2 : isConjunct ? 1 : 0,
+    sign >= 0 ? sign : 0,
+  ] as const;
+}
+
+function compareMalayalamPickerKeys(
+  a: { ml: string; sound: string },
+  b: { ml: string; sound: string },
+) {
+  const aRank = malayalamPickerRank(a.ml);
+  const bRank = malayalamPickerRank(b.ml);
+  for (let index = 0; index < 3; index += 1) {
+    if (aRank[index] !== bRank[index]) return aRank[index] - bRank[index];
+  }
+
+  // Keep each conjunct stem together (മ്പ, മ്പി, then മ്മാ) before applying
+  // the vowel-form order within that stem.
+  if (aRank[2] === 1 && bRank[2] === 1) {
+    const stripSign = (text: string) =>
+      text.replace(/[ാിീുൂൃൄെേൈൊോൌംഃ്]$/u, "");
+    const stemOrder = stripSign(a.ml).localeCompare(stripSign(b.ml), "ml");
+    if (stemOrder !== 0) return stemOrder;
+  }
+  if (aRank[3] !== bRank[3]) return aRank[3] - bRank[3];
+  return a.ml.localeCompare(b.ml, "ml") || a.sound.localeCompare(b.sound, "ml");
+}
+
 // Tile-flip choreography. Keyboard state, confetti, and the result modal all
 // wait for the final tile to land so the reveal stays suspenseful.
 const FLIP_STAGGER_MS = 270;
@@ -298,6 +360,7 @@ export default function Home() {
     [playableKeys],
   );
   const pickerKeys = useMemo(() => {
+    if (pack.locale === "ml") return [...allKeys].sort(compareMalayalamPickerKeys);
     const collator = new Intl.Collator(pack.locale, { sensitivity: "base" });
     return [...allKeys].sort(
       (a, b) =>
