@@ -11,13 +11,14 @@ import {
   useState,
 } from "react";
 import { buzz, sfx } from "../lib/sfx";
+import { getEligibleSpinWords } from "../lib/spin.mjs";
 
 type KeyDef = { ml: string; sound: string };
 type TileState = "correct" | "present" | "absent" | "empty";
 type ReelMotion = "idle" | "spin" | "snap";
-type GuideStep = "lock" | null;
+type GuideStep = "pick" | "check" | null;
 
-export type MachineEvent = "land" | "freespin" | "lock" | "dial";
+export type MachineEvent = "land" | "freespin" | "lock" | "dial" | "picker";
 
 const REEL_COUNT = 5;
 // Enough runway for the farthest-travelling reel: a spin adds one full loop
@@ -32,7 +33,25 @@ const STRIP_COPIES = 4;
 // an alphabet such as Spanish's 33 entries would repeat only 3 letters.
 const PREFERRED_STRIDE = 11;
 const INITIAL_OFFSETS = [0, 7, 14, 21, 28];
-const GUIDE_STORAGE_KEY = "chathuraksharam-guidance-v1";
+
+type MachineCopy = {
+  checking: string;
+  checkWord: string;
+  closePicker: string;
+  pickerGroup: string;
+  pickerShortcutsAria: string;
+  pickerTitle: string;
+  pull: string;
+  pullAria: string;
+  pullShortcut: string;
+  reelLabel: string;
+  reelAction: string;
+  reelLocked: string;
+};
+
+function withNumber(template: string, number: number) {
+  return template.replace("{number}", String(number));
+}
 
 function greatestCommonDivisor(a: number, b: number): number {
   return b === 0 ? a : greatestCommonDivisor(b, a % b);
@@ -70,25 +89,23 @@ function pickTargetIndex(
   return weights.length - 1;
 }
 
-// The lever prefers real words, but never lands on the puzzle answer. The
-// global lock is a submit control, so every pull always moves all five reels.
+// The lever prefers real words. `excludedWord` protects the first pull from
+// landing on the answer; later pulls include it as an ordinary candidate.
 function pickSpinTargets(
   reelSeq: KeyDef[],
   keyboardState: Map<string, TileState>,
   dictionary: ReadonlyArray<ReadonlyArray<string>>,
   lockedPattern: (string | null)[],
   usedWords: ReadonlySet<string>,
-  answer: string,
+  excludedWord: string | null,
 ): { targets: number[]; freespin: boolean; word: string | null } {
   const seqIndex = new Map(reelSeq.map((key, index) => [key.ml, index]));
-  const candidates = dictionary.filter(
-    (tiles) =>
-      !usedWords.has(tiles.join("")) &&
-      tiles.join("") !== answer &&
-      tiles.every(
-        (tile, i) =>
-          seqIndex.has(tile) && (!lockedPattern[i] || lockedPattern[i] === tile),
-      ),
+  const candidates = getEligibleSpinWords(
+    dictionary,
+    new Set(seqIndex.keys()),
+    lockedPattern,
+    usedWords,
+    excludedWord,
   );
 
   if (candidates.length > 0) {
@@ -186,6 +203,8 @@ export default function SlotMachine({
   dictionary,
   usedWords,
   answer,
+  coach,
+  copy,
   guideLabels,
   reelsLabel,
   showPickerSounds,
@@ -207,6 +226,9 @@ export default function SlotMachine({
   usedWords: ReadonlyArray<string>;
   /** The lever must never give away the solution. */
   answer: string;
+  /** Show the short, progressive coach only for a player's first game. */
+  coach: boolean;
+  copy: MachineCopy;
   guideLabels: { lock: string; pick: string };
   reelsLabel: string;
   /** Show Latin sound guides beneath non-Latin picker symbols. */
@@ -269,21 +291,13 @@ export default function SlotMachine({
     moved: number;
     live: number;
   } | null>(null);
-  // Dictionary words the lever has landed on since page load.
+  // These refs live for the keyed puzzle component, so they persist across
+  // submitted guesses but reset when the language, category, or puzzle does.
   const landedWords = useRef<Set<string>>(new Set());
+  const puzzlePullCount = useRef(0);
   const rafRef = useRef(0);
   const positionsRef = useRef(positions);
-  const guideComplete = useRef(false);
   const spinning = motion.some((m) => m === "spin");
-
-  useEffect(() => {
-    try {
-      guideComplete.current =
-        window.localStorage.getItem(GUIDE_STORAGE_KEY) === "done";
-    } catch {
-      guideComplete.current = false;
-    }
-  }, []);
 
   useEffect(() => {
     positionsRef.current = positions;
@@ -315,7 +329,7 @@ export default function SlotMachine({
     setPickerReel(null);
     setLeverPulled(false);
     setInteracted(false);
-    landedWords.current.clear();
+    setGuideStep(null);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [initialLocked, initialPositions, roundKey]);
 
@@ -344,7 +358,6 @@ export default function SlotMachine({
   const onLeverPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
     leverHeld.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
-    setInteracted(true); // stop the hint animation fighting the pull
     setLeverPulled(true);
   };
 
@@ -377,15 +390,20 @@ export default function SlotMachine({
     ).matches;
 
     setLeverPulled(true);
-    if (guideStep === "lock") setGuideStep(null);
+    setGuideStep(null);
     later(() => setLeverPulled(false), 620);
     setInteracted(true);
     sfx.crank();
     buzz([14, 30, 14]);
 
     const lockedPattern = Array(REEL_COUNT).fill(null);
-    // Pulls avoid words this session's lever already landed on; a word only
-    // repeats once every other fitting word has been shown.
+    // The first pull can never solve the puzzle by itself. Starting with the
+    // second pull, the answer joins the same pool as every other word.
+    const excludedAnswer = puzzlePullCount.current === 0 ? answer : null;
+    puzzlePullCount.current += 1;
+
+    // Pulls avoid words this puzzle's lever already landed on; a word only
+    // repeats once every other fitting word has been shown across all tries.
     const guessed = new Set(usedWords);
     let pick = pickSpinTargets(
       reelSeq,
@@ -393,7 +411,7 @@ export default function SlotMachine({
       dictionary,
       lockedPattern,
       new Set([...guessed, ...landedWords.current]),
-      answer,
+      excludedAnswer,
     );
     if (pick.freespin) {
       // Either every fitting word has been landed on (start the cycle
@@ -404,7 +422,7 @@ export default function SlotMachine({
         dictionary,
         lockedPattern,
         guessed,
-        answer,
+        excludedAnswer,
       );
       if (!retry.freespin) {
         landedWords.current.clear();
@@ -414,7 +432,10 @@ export default function SlotMachine({
     let { targets, freespin } = pick;
     // A free spin is random rather than dictionary-backed. Guard its tiny
     // chance of spelling the answer by nudging the final reel one step.
-    if (targets.map((target) => reelSeq[target]?.ml).join("") === answer) {
+    if (
+      freespin &&
+      targets.map((target) => reelSeq[target]?.ml).join("") === answer
+    ) {
       targets = [...targets];
       targets[REEL_COUNT - 1] = (targets[REEL_COUNT - 1] + 1) % seqLength;
       freespin = true;
@@ -449,9 +470,7 @@ export default function SlotMachine({
       setPositions((current) => current.map((p) => normalize(p)));
       const letters = nextPositions.map((p) => letterAt(p).ml);
       onChange(letters, locked, freespin ? "freespin" : "land");
-      if (!guideComplete.current) {
-        setGuideStep("lock");
-      }
+      if (coach) setGuideStep("pick");
     }, lastLand + 120);
   }
 
@@ -462,15 +481,10 @@ export default function SlotMachine({
   function showPicker(index: number) {
     if (disabled || spinning || locked[index]) return;
     if (pickerReel === index) return; // already targeted — stays open
-    guideComplete.current = true;
-    setGuideStep(null);
-    try {
-      window.localStorage.setItem(GUIDE_STORAGE_KEY, "done");
-    } catch {
-      // The guidance still dismisses for this session if storage is blocked.
-    }
+    if (coach) setGuideStep("pick");
     sfx.key();
     setPickerReel(index);
+    onChange(currentLetters, locked, "picker");
   }
 
   function closePicker(restoreFocus = true) {
@@ -525,6 +539,7 @@ export default function SlotMachine({
     if (target < 0) return;
 
     setInteracted(true);
+    if (coach) setGuideStep("check");
     sfx.tick();
     buzz(6);
     if (advance && advanceImmediately) {
@@ -538,6 +553,7 @@ export default function SlotMachine({
     if (delta > seqLength / 2) delta -= seqLength;
     if (delta < -seqLength / 2) delta += seqLength;
     if (delta === 0) {
+      onChange(currentLetters, locked, "dial");
       if (advance && !advanceImmediately) {
         setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
       }
@@ -734,6 +750,7 @@ export default function SlotMachine({
         showPicker(index);
       } else {
         setInteracted(true);
+        if (coach) setGuideStep("check");
         sfx.tick();
         buzz(6);
         const snapped = Math.round(drag.live);
@@ -768,7 +785,13 @@ export default function SlotMachine({
   }, [disabled, locked, pickerReel, seqLength, spinning]);
 
   function submitAllLocks() {
-    if (disabled || spinning || locked.every(Boolean)) return;
+    if (
+      disabled ||
+      spinning ||
+      locked.every(Boolean) ||
+      !interacted ||
+      pickerReel !== null
+    ) return;
 
     const next = Array(REEL_COUNT).fill(true);
     setLocked(next);
@@ -780,6 +803,7 @@ export default function SlotMachine({
   }
 
   const allLocked = locked.every(Boolean);
+  const readyToCheck = interacted && pickerReel === null && !spinning && !allLocked;
 
   return (
     <div
@@ -789,7 +813,7 @@ export default function SlotMachine({
       role="group"
     >
       <div className="machine-body">
-        <div className="reel-bank">
+        <div className={`reel-bank ${guideStep === "pick" ? "coach-target" : ""}`}>
           {positions.map((position, i) => {
             const displayed = dragReel === i ? dragPos : position;
             const key = letterAt(displayed);
@@ -831,10 +855,10 @@ export default function SlotMachine({
                   }
                 >
                   <button
-                    aria-label={`Reel ${i + 1}: ${key.ml}, ${key.sound}. ${
+                    aria-label={`${withNumber(copy.reelLabel, i + 1)}: ${key.ml}, ${key.sound}. ${
                       locked[i]
-                        ? "Locked — checking word"
-                        : "Tap to pick a letter, drag to dial"
+                        ? copy.reelLocked
+                        : copy.reelAction
                     }`}
                     className="reel-dial"
                     disabled={disabled}
@@ -847,7 +871,7 @@ export default function SlotMachine({
                     ref={(element) => {
                       reelButtonRefs.current[i] = element;
                     }}
-                    title={`Press ${i + 1} to choose this reel`}
+                    title={`${withNumber(copy.reelLabel, i + 1)} — ${copy.reelAction}`}
                     type="button"
                   >
                     <div className="reel-window">
@@ -875,9 +899,9 @@ export default function SlotMachine({
         </div>
 
         <button
-          aria-label="Pull the lever to spin the letters"
+          aria-label={copy.pullAria}
           className={`lever ${leverPulled ? "pulled" : ""} ${
-            !interacted && !disabled ? "hinting" : ""
+            coach && !interacted && !disabled ? "hinting" : ""
           }`}
           disabled={disabled || spinning || allLocked}
           onClick={(event) => {
@@ -892,24 +916,24 @@ export default function SlotMachine({
           <span className="lever-arm" aria-hidden="true">
             <span className="lever-knob" />
           </span>
-          <span className="lever-label">PULL</span>
+          <span className="lever-label">{copy.pull}</span>
         </button>
-        <span className="sr-only">Press Space to pull the lever.</span>
+        <span className="sr-only">{copy.pullShortcut}</span>
       </div>
 
       <div className="machine-lock-wrap">
         <button
-          aria-label={allLocked ? "Checking the selected word" : "Lock all five dials and check the word"}
+          aria-label={allLocked ? copy.checking : copy.checkWord}
           aria-pressed={allLocked}
-          className={`machine-lock ${allLocked ? "locked" : ""} ${guideStep === "lock" ? "coach-target" : ""}`}
-          disabled={disabled || spinning || allLocked}
+          className={`machine-lock ${readyToCheck ? "ready" : ""} ${allLocked ? "locked" : ""} ${guideStep === "check" && readyToCheck ? "coach-target" : ""}`}
+          disabled={disabled || spinning || allLocked || !interacted || pickerReel !== null}
           onClick={submitAllLocks}
           type="button"
         >
           <LockIcon open={false} />
-          {allLocked ? "Checking…" : "Lock all & check"}
+          {allLocked ? copy.checking : copy.checkWord}
         </button>
-        {guideStep === "lock" ? <span className="coach-tip machine-lock-tip">{guideLabels.lock}</span> : null}
+        {guideStep === "check" && readyToCheck ? <span className="coach-tip machine-lock-tip">{guideLabels.lock}</span> : null}
       </div>
 
       {/* Inline callout: pops down under the reels with a caret pointing
@@ -917,17 +941,17 @@ export default function SlotMachine({
           different reel moves the caret there directly. */}
       {pickerReel !== null ? (
         <div
-          aria-label={`Pick a letter for reel ${pickerReel + 1}`}
+        aria-label={withNumber(copy.pickerGroup, pickerReel + 1)}
           className="picker-pop"
           role="group"
         >
           <span aria-hidden="true" className="picker-caret" ref={caretRef} />
           <div className="picker-head">
             <p className="picker-title">
-              Reel {pickerReel + 1} — pick a letter
+              {withNumber(copy.pickerTitle, pickerReel + 1)}
             </p>
             <button
-              aria-label="Close the letter picker"
+              aria-label={copy.closePicker}
               className="picker-close"
               onClick={() => closePicker(true)}
               type="button"
@@ -936,7 +960,7 @@ export default function SlotMachine({
             </button>
           </div>
           <p
-            aria-label="Keyboard shortcuts: numbers 1 through 5 choose a reel, arrow keys move, Enter accepts, and Escape closes"
+            aria-label={copy.pickerShortcutsAria}
             className="picker-shortcuts"
           >
             1–5 · ← → · ↑ ↓ · Enter · Esc

@@ -31,6 +31,8 @@ const START_DATE = Date.UTC(2026, 0, 1);
 const DAY_MS = 86_400_000;
 const STORAGE_KEY = "chathuraksharam-stream-state-v2";
 const SOUND_KEY = "chathuraksharam-sound-v1";
+const EXPERIENCE_KEY = "chathuraksharam-experience-v1";
+const STREAM_PREFERENCE_KEY = "chathuraksharam-stream-preference-v1";
 const AUTO_CHECK_DELAY_MS = 1200;
 const WHATSAPP_CHANNEL_URL =
   "https://whatsapp.com/channel/0029VbDGDdmAe5VjVZMjtH3o";
@@ -113,6 +115,16 @@ const CONFETTI_PIECES = Array.from({ length: 44 }, (_, index) => ({
 
 type TileState = "correct" | "present" | "absent" | "empty";
 
+function formatCopy(
+  template: string,
+  values: Record<string, string | number>,
+) {
+  return Object.entries(values).reduce(
+    (copy, [key, value]) => copy.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
+}
+
 type PersistedState = {
   puzzleId: number;
   guesses: string[];
@@ -166,28 +178,12 @@ function evaluateGuess(
 
 function getWrongGuessMessage(
   pack: LanguagePack,
-  guess: string,
-  answer: string,
   nextAttempt: number,
 ) {
-  const result = evaluateGuess(pack, guess, answer);
-  const correctCount = result.filter((tile) => tile === "correct").length;
-  const presentCount = result.filter((tile) => tile === "present").length;
-  const matchSummary =
-    correctCount === 0 && presentCount === 0
-      ? "none of those letters are in the answer"
-      : [
-          correctCount > 0
-            ? `${correctCount} ${correctCount === 1 ? "letter is" : "letters are"} in the right position`
-            : "",
-          presentCount > 0
-            ? `${presentCount} ${presentCount === 1 ? "letter is" : "letters are"} in the wrong position`
-            : "",
-        ]
-          .filter(Boolean)
-          .join("; ");
-
-  return `Not quite — ${matchSummary}. Try ${nextAttempt} of ${MAX_GUESSES}: choose new letters, then lock & check.`;
+  return formatCopy(pack.ui.wrongGuess, {
+    attempt: nextAttempt,
+    max: MAX_GUESSES,
+  });
 }
 
 function emptyState(puzzleId: number): PersistedState {
@@ -254,8 +250,8 @@ function getShareText(
   return [
     `${pack.title} · ${pack.nativeName} · ${categoryLabel} ${state.puzzleId + 1} · ${score}/${MAX_GUESSES}`,
     ...rows,
-    `🔥 ${state.streak} round streak`,
-    `Can you solve a ${pack.name} word?`,
+    `🔥 ${formatCopy(pack.ui.streakShare, { count: state.streak })}`,
+    formatCopy(pack.ui.challengeShare, { language: pack.name }),
     `${window.location.origin}/?language=${encodeURIComponent(pack.id)}&category=${encodeURIComponent(categoryId)}`,
   ].join("\n");
 }
@@ -415,6 +411,8 @@ export default function Home() {
   const [showResultModal, setShowResultModal] = useState(false);
   const [showStreamMenu, setShowStreamMenu] = useState(false);
   const [machineResetKey, setMachineResetKey] = useState(0);
+  const [isFirstTime, setIsFirstTime] = useState(true);
+  const [showHowTo, setShowHowTo] = useState(true);
 
   useEffect(() => {
     document.documentElement.lang = pack.locale;
@@ -431,6 +429,7 @@ export default function Home() {
   const [soundOn, setSoundOn] = useState(true);
   const timeoutsRef = useRef<number[]>([]);
   const autoCheckRef = useRef<number | null>(null);
+  const firstInputTrackedRef = useRef(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const streamMenuRef = useRef<HTMLDivElement>(null);
   const streamTriggerRef = useRef<HTMLButtonElement>(null);
@@ -465,8 +464,24 @@ export default function Home() {
     // the HTML or producing a server/client mismatch after midnight.
     /* eslint-disable react-hooks/set-state-in-effect */
     const params = new URLSearchParams(window.location.search);
-    const requestedLanguage = params.get("language");
-    const requestedCategory = params.get("category");
+    let preferredStream: { language?: string; category?: string } | null = null;
+    let returningPlayer = false;
+    try {
+      preferredStream = JSON.parse(
+        window.localStorage.getItem(STREAM_PREFERENCE_KEY) ?? "null",
+      ) as { language?: string; category?: string } | null;
+      returningPlayer =
+        window.localStorage.getItem(EXPERIENCE_KEY) === "complete";
+    } catch {
+      preferredStream = null;
+    }
+    setIsFirstTime(!returningPlayer);
+    setShowHowTo(!returningPlayer);
+
+    const requestedLanguage =
+      params.get("language") ?? preferredStream?.language ?? null;
+    const requestedCategory =
+      params.get("category") ?? preferredStream?.category ?? null;
     const customAlias = requestedLanguage === "custom";
     const customRequested =
       customAlias ||
@@ -530,6 +545,14 @@ export default function Home() {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
+  useEffect(() => {
+    if (!dailyReady || category.id === "custom") return;
+    window.localStorage.setItem(
+      STREAM_PREFERENCE_KEY,
+      JSON.stringify({ language: pack.id, category: category.id }),
+    );
+  }, [category.id, dailyReady, pack.id]);
+
   const gameOver = state.solved || state.guesses.length >= MAX_GUESSES;
   const inputLocked = gameOver || revealing;
   const roundOver = gameOver && !revealing;
@@ -582,13 +605,8 @@ export default function Home() {
   );
   const continuationMessage = useMemo(() => {
     if (gameOver || revealing || state.guesses.length === 0) return "";
-    return getWrongGuessMessage(
-      pack,
-      state.guesses[state.guesses.length - 1],
-      answer.word,
-      state.guesses.length + 1,
-    );
-  }, [answer.word, gameOver, pack, revealing, state.guesses]);
+    return getWrongGuessMessage(pack, state.guesses.length + 1);
+  }, [gameOver, pack, revealing, state.guesses.length]);
 
   const later = useCallback((fn: () => void, ms: number) => {
     timeoutsRef.current.push(window.setTimeout(fn, ms));
@@ -692,18 +710,59 @@ export default function Home() {
 
     if (event === "land") {
       posthog.capture("lever_pulled", { result: "land", puzzle_id: puzzleId });
-      setMessage("");
+      if (!firstInputTrackedRef.current) {
+        firstInputTrackedRef.current = true;
+        posthog.capture("game_input_started", {
+          language: pack.id,
+          method: "lever",
+          new_player: isFirstTime,
+          puzzle_id: puzzleId,
+        });
+      }
+      setMessage(pack.ui.adjustInstruction);
       return;
     }
 
     if (event === "freespin") {
       posthog.capture("lever_pulled", { result: "freespin", puzzle_id: puzzleId });
-      setMessage("Free spin — no word fits those locks.");
+      if (!firstInputTrackedRef.current) {
+        firstInputTrackedRef.current = true;
+        posthog.capture("game_input_started", {
+          language: pack.id,
+          method: "lever",
+          new_player: isFirstTime,
+          puzzle_id: puzzleId,
+        });
+      }
+      setMessage(pack.ui.freeSpin);
+      return;
+    }
+
+    if (event === "picker") {
+      posthog.capture("letter_picker_opened", {
+        language: pack.id,
+        puzzle_id: puzzleId,
+      });
+      setMessage(pack.ui.pickInstruction);
+      return;
+    }
+
+    if (event === "dial") {
+      if (!firstInputTrackedRef.current) {
+        firstInputTrackedRef.current = true;
+        posthog.capture("game_input_started", {
+          language: pack.id,
+          method: "reel",
+          new_player: isFirstTime,
+          puzzle_id: puzzleId,
+        });
+      }
+      setMessage(pack.ui.readyInstruction);
       return;
     }
 
     if (event === "lock" && locked.every(Boolean)) {
-      setMessage("Checking…");
+      setMessage(pack.ui.checking);
       autoCheckRef.current = window.setTimeout(() => {
         autoCheckRef.current = null;
         submitWord(letters.join(""));
@@ -718,11 +777,7 @@ export default function Home() {
     const tiles = splitWord(pack, normalized);
 
     if (tiles.length !== WORD_SIZE) {
-      setMessage(
-        pack.id === "ml"
-          ? "Some of those letters join together. The reels were reset — try another combination."
-          : `Enter exactly ${WORD_SIZE} ${pack.name} letters.`,
-      );
+      setMessage(pack.id === "ml" ? pack.ui.invalidJoined : pack.ui.invalidLength);
       setMachineResetKey((current) => current + 1);
       setShakeRow(true);
       sfx.invalid();
@@ -735,6 +790,16 @@ export default function Home() {
     const solved = normalized === answer.word;
     const finalTry = rowIndex + 1 >= MAX_GUESSES;
     const finished = solved || finalTry;
+
+    if (isFirstTime) {
+      window.localStorage.setItem(EXPERIENCE_KEY, "complete");
+      setIsFirstTime(false);
+      setShowHowTo(false);
+      posthog.capture("first_game_tutorial_completed", {
+        language: pack.id,
+        puzzle_id: puzzleId,
+      });
+    }
 
     posthog.capture("word_guessed", {
       puzzle_id: puzzleId,
@@ -755,7 +820,7 @@ export default function Home() {
     }));
     setCopied(false);
     setRevealing(true);
-    setMessage("Revealing…");
+    setMessage(pack.ui.revealing);
 
     for (let i = 0; i < WORD_SIZE; i += 1) {
       later(() => sfx.flip(i), i * FLIP_STAGGER_MS + 140);
@@ -775,9 +840,11 @@ export default function Home() {
         setShowConfetti(true);
         sfx.win();
         buzz([28, 40, 28, 40, 60]);
-        setMessage(
-          `Correct: ${answer.word} (${answer.pronunciation}) means "${answer.meaning}".`,
-        );
+        setMessage(formatCopy(pack.ui.correct, {
+          word: answer.word,
+          pronunciation: answer.pronunciation,
+          meaning: answer.meaning,
+        }));
         later(() => setShowResultModal(true), 1350);
       } else if (finalTry) {
         posthog.capture("puzzle_lost", {
@@ -786,14 +853,14 @@ export default function Home() {
         });
         sfx.lose();
         buzz(90);
-        setMessage(
-          `The answer was ${answer.word} (${answer.pronunciation}), meaning "${answer.meaning}".`,
-        );
+        setMessage(formatCopy(pack.ui.answerWas, {
+          word: answer.word,
+          pronunciation: answer.pronunciation,
+          meaning: answer.meaning,
+        }));
         later(() => setShowResultModal(true), 750);
       } else {
-        setMessage(
-          getWrongGuessMessage(pack, normalized, answer.word, rowIndex + 2),
-        );
+        setMessage(getWrongGuessMessage(pack, rowIndex + 2));
         later(() => sfx.roll(), 180);
       }
     }, REVEAL_TOTAL_MS + 60);
@@ -805,15 +872,15 @@ export default function Home() {
       if (navigator.share) {
         await navigator.share({ text, title: pack.title });
         posthog.capture("result_shared", { method: "share", puzzle_id: puzzleId });
-        setMessage("Result shared.");
+        setMessage(pack.ui.resultShared);
       } else {
         await navigator.clipboard.writeText(text);
         posthog.capture("result_shared", { method: "clipboard", puzzle_id: puzzleId });
         setCopied(true);
-        setMessage("Result copied.");
+        setMessage(pack.ui.resultCopied);
       }
     } catch {
-      setMessage("Sharing was cancelled.");
+      setMessage(pack.ui.sharingCancelled);
     }
   }
 
@@ -880,11 +947,11 @@ export default function Home() {
           <Dialog.Content className="fixed left-1/2 top-1/2 z-30 w-[calc(100%-2.5rem)] max-w-md -translate-x-1/2 -translate-y-1/2">
             <div className="result-card w-full p-6">
             <p className="result-eyebrow">
-              {pack.nativeName} · {category.icon} {category.label} · Round {puzzleId + 1}
+              {pack.nativeName} · {category.icon} {category.label} · {pack.ui.round} {puzzleId + 1}
             </p>
             <Dialog.Title asChild>
               <h2 className="result-title mt-2 text-3xl">
-                {state.solved ? "You got it!" : "Puzzle complete"}
+                {state.solved ? pack.ui.won : pack.ui.puzzleComplete}
               </h2>
             </Dialog.Title>
             <p className="result-score mt-2 text-lg">
@@ -892,20 +959,24 @@ export default function Home() {
             </p>
             <div className="result-answer-reveal mt-4">
               <p className="result-section-label">
-                {state.solved ? "Answer confirmed" : "Answer reveal"}
+                {state.solved ? pack.ui.answerConfirmed : pack.ui.answerReveal}
               </p>
               <Dialog.Description asChild>
                 <p className="result-meaning text-base leading-7">
-                  <strong>{answer.word}</strong> ({answer.pronunciation}) means “{answer.meaning}”.
+                  {formatCopy(pack.ui.means, {
+                    word: answer.word,
+                    pronunciation: answer.pronunciation,
+                    meaning: answer.meaning,
+                  })}
                 </p>
               </Dialog.Description>
             </div>
             <div className="result-share-preview mt-3">
-              <p className="result-section-label">What you’ll share</p>
+              <p className="result-section-label">{pack.ui.sharePreview}</p>
               <p className="result-share-note">
-                Grid, score, streak, and game link. The answer and clue stay private.
+                {pack.ui.shareNote}
               </p>
-              <div aria-label="Spoiler-free result" className="mt-2 space-y-1 text-xl leading-none">
+              <div aria-label={pack.ui.sharePreview} className="mt-2 space-y-1 text-xl leading-none">
                 {state.guesses.map((guess, index) => (
                   <p key={`${guess}-${index}`}>
                     {evaluateGuess(pack, guess, answer.word)
@@ -921,7 +992,7 @@ export default function Home() {
                 onClick={() => setShowResultModal(false)}
                 type="button"
               >
-                Close
+                {pack.ui.close}
               </button>
               <button
                 className="btn-primary px-5 py-3"
@@ -936,14 +1007,14 @@ export default function Home() {
               onClick={shareResult}
               type="button"
             >
-              {copied ? "Copied" : "More share options"}
+              {copied ? pack.ui.copied : pack.ui.moreShareOptions}
             </button>
             <button
               className="btn-outline mt-3 block w-full px-5 py-3 text-center"
               onClick={nextPuzzle}
               type="button"
             >
-              Next {category.icon} {category.label} puzzle →
+              {pack.ui.nextPuzzle} {category.icon} {category.label} →
             </button>
             </div>
           </Dialog.Content>
@@ -973,9 +1044,9 @@ export default function Home() {
                 <i aria-hidden="true">⌄</i>
               </button>
               {showStreamMenu ? (
-                <div aria-label="Choose language and category" className="stream-menu" id="stream-menu" role="menu">
+                <div aria-label={`${pack.ui.languageLabel} / ${pack.ui.categoryLabel}`} className="stream-menu" id="stream-menu" role="menu">
                   <button
-                    aria-label="Close language and category selector"
+                    aria-label={`${pack.ui.close}: ${pack.ui.languageLabel} / ${pack.ui.categoryLabel}`}
                     className="stream-menu-close"
                     onClick={() => {
                       setShowStreamMenu(false);
@@ -985,7 +1056,7 @@ export default function Home() {
                   >
                     ✕
                   </button>
-                  <span className="stream-menu-label">Language</span>
+                  <span className="stream-menu-label">{pack.ui.languageLabel}</span>
                   <div className="stream-menu-grid languages">
                     {LANGUAGE_PACKS.map((language) => (
                       <button
@@ -999,7 +1070,7 @@ export default function Home() {
                       </button>
                     ))}
                   </div>
-                  <span className="stream-menu-label">Category</span>
+                  <span className="stream-menu-label">{pack.ui.categoryLabel}</span>
                   <div className="stream-menu-grid categories">
                     {pack.categories
                       .filter((item) => !item.hidden && isCategoryAvailable(item))
@@ -1020,13 +1091,13 @@ export default function Home() {
                     onClick={() => setShowStreamMenu(false)}
                     type="button"
                   >
-                    Done
+                    {pack.ui.done}
                   </button>
                 </div>
               ) : null}
             </div>
             <button
-              aria-label={soundOn ? "Mute sounds" : "Unmute sounds"}
+              aria-label={soundOn ? pack.ui.muteSounds : pack.ui.unmuteSounds}
               aria-pressed={soundOn}
               className="sound-toggle"
               onClick={toggleSound}
@@ -1043,13 +1114,6 @@ export default function Home() {
               aria-label={`${pack.name} ${category.label} word puzzle`}
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
-              <aside
-                className="game-goal arriving"
-                key={`goal-${pack.id}-${category.id}-${puzzleId}`}
-              >
-                <span aria-hidden="true">◎</span>
-                <p><strong>{pack.goal.label}:</strong> {pack.goal.text}</p>
-              </aside>
               <section
                 aria-labelledby="puzzle-clue-label"
                 className="puzzle-clue arriving"
@@ -1063,9 +1127,36 @@ export default function Home() {
                   </p>
                 ) : null}
               </section>
+              {showHowTo ? (
+                <aside
+                  className="game-goal arriving"
+                  key={`goal-${pack.id}-${category.id}-${puzzleId}`}
+                >
+                  <span aria-hidden="true">◎</span>
+                  <p><strong>{pack.goal.label}:</strong> {pack.goal.text}</p>
+                  <button
+                    aria-label={pack.ui.hideInstructions}
+                    className="game-goal-close"
+                    onClick={() => setShowHowTo(false)}
+                    type="button"
+                  >
+                    ✕
+                  </button>
+                </aside>
+              ) : (
+                <button
+                  aria-expanded={false}
+                  className="how-to-toggle"
+                  onClick={() => setShowHowTo(true)}
+                  type="button"
+                >
+                  <span aria-hidden="true">ⓘ</span> {pack.ui.howToPlay}
+                </button>
+              )}
               <WordDrum
                 activeRow={activeRow}
                 attemptLabel={pack.attemptLabel}
+                copy={pack.ui}
                 currentAttempt={currentAttempt}
                 key={`drum-${pack.id}-${category.id}-${puzzleId}`}
                 rows={drumRows}
@@ -1076,11 +1167,16 @@ export default function Home() {
               />
 
               <p className="status-message mt-4 min-h-7 text-center text-base">
-                {message || continuationMessage}
+                {message || continuationMessage ||
+                  (!gameOver && isFirstTime && state.guesses.length === 0
+                    ? pack.ui.startInstruction
+                    : "")}
               </p>
 
               <SlotMachine
                 answer={answer.word}
+                coach={isFirstTime}
+                copy={pack.ui}
                 dictionary={guessWordTiles}
                 disabled={inputLocked}
                 keyboardState={keyboardState}
@@ -1104,14 +1200,14 @@ export default function Home() {
                     onClick={shareResult}
                     type="button"
                   >
-                    {copied ? "Copied" : "Share result"}
+                    {copied ? pack.ui.copied : pack.ui.shareResult}
                   </button>
                   <button
                     className="btn-outline px-6 py-3 text-sm uppercase tracking-[0.14em]"
                     onClick={nextPuzzle}
                     type="button"
                   >
-                    Next puzzle →
+                    {pack.ui.nextPuzzle} →
                   </button>
                 </div>
               ) : null}
@@ -1126,11 +1222,12 @@ export default function Home() {
               target="_blank"
             >
               <span aria-hidden="true">◉</span>
-              Follow updates
+              {pack.ui.followUpdates}
               <span aria-hidden="true">→</span>
             </a>
             <FeedbackForm
               category={category.id}
+              label={pack.ui.sendFeedback}
               language={pack.id}
               puzzle={puzzleId + 1}
             />

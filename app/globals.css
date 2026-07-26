@@ -701,13 +701,60 @@ button {
 
 .game-goal strong { color: var(--gold-bright); }
 
+.game-goal-close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.72rem;
+  height: 28px;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0;
+  width: 28px;
+}
+
+.game-goal-close:hover,
+.game-goal-close:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  outline: none;
+}
+
+.how-to-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--ink-faint);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 800;
+  gap: 6px;
+  margin: 0 auto 8px;
+  padding: 4px 9px;
+}
+
+.how-to-toggle:hover,
+.how-to-toggle:focus-visible {
+  color: var(--emerald);
+  outline: none;
+}
+
 .puzzle-clue.arriving,
 .game-goal.arriving {
   animation: puzzle-content-arrive 760ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
 }
 
 .puzzle-clue.arriving {
-  animation-delay: 800ms;
+  animation-delay: 120ms;
+}
+
+.game-goal.arriving {
+  animation-delay: 340ms;
 }
 
 @keyframes puzzle-content-arrive {
@@ -1070,6 +1117,7 @@ button {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   max-width: 470px;
   padding: 12px;
+  position: relative;
   width: 0;
 }
 
@@ -1167,10 +1215,10 @@ button {
 
 .machine-lock {
   align-items: center;
-  background: linear-gradient(180deg, rgba(54, 42, 19, 0.98), rgba(20, 18, 10, 0.98));
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--glass-border-dim);
   border-radius: 12px;
-  color: var(--gold-bright);
+  color: var(--ink-faint);
   cursor: pointer;
   display: flex;
   font-size: 0.86rem;
@@ -1184,8 +1232,9 @@ button {
 }
 
 .machine-lock .lock-icon { font-size: 1.15rem; }
-.machine-lock:hover:not(:disabled), .machine-lock:focus-visible { background: linear-gradient(180deg, rgba(78, 59, 24, 0.99), rgba(31, 26, 12, 0.99)); border-color: var(--gold); outline: none; }
-.machine-lock:disabled { cursor: not-allowed; opacity: 0.45; }
+.machine-lock.ready { background: linear-gradient(180deg, rgba(54, 42, 19, 0.98), rgba(20, 18, 10, 0.98)); border-color: var(--glass-border); color: var(--gold-bright); }
+.machine-lock.ready:hover:not(:disabled), .machine-lock.ready:focus-visible { background: linear-gradient(180deg, rgba(78, 59, 24, 0.99), rgba(31, 26, 12, 0.99)); border-color: var(--gold); outline: none; }
+.machine-lock:disabled { cursor: not-allowed; opacity: 0.58; }
 .machine-lock.locked { background: linear-gradient(180deg, rgba(15, 69, 48, 0.98), rgba(6, 31, 21, 0.98)); border-color: var(--emerald); color: #8ff5cd; }
 .machine-lock-tip { bottom: calc(100% + 9px); }
 .machine-lock-tip::after { border-top: 6px solid var(--gold); bottom: -6px; }

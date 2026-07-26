@@ -43,7 +43,8 @@ not by curling HTML.
 
 - The ONLY input is the slot machine: five `.reel` buttons + a `.lever` button.
   Click the lever → all reels spin (~2s full speed) and land on a dictionary
-  word other than the answer. The single `.machine-lock` button freezes all
+  word. The first pull of a puzzle excludes the answer; pull two onward includes
+  it as an ordinary candidate. The single `.machine-lock` button freezes all
   five dials and auto-checks after ~1.2s. It shows a disabled “Checking…” state
   during that delay; there is no transient unlock action. Reels reset after reveal.
 - Read a reel's current letter from its dial aria-label:
@@ -82,13 +83,13 @@ not by curling HTML.
   lock triggers the auto-check. After game over
   the drum stays on the final
   guessed face (it must not roll to an empty face).
-- Lever pulls land on dictionary entries that aren't the current answer or
-  already guessed. Pulls
-  also avoid words the lever already landed on since page load — a word may
+- Lever pulls land on dictionary entries that haven't already been guessed.
+  Pulls also avoid words the lever already landed on during the current puzzle,
+  including across submitted guesses — a word may
   repeat only after every other available word has been shown; when
   no word remains, it falls back to weighted-random letters and the status
-  says "free spin". To verify, replicate the dictionary in the test and
-  assert each landing is a member and not the answer. New dictionary words
+  says "free spin". To verify, assert that pull one is a non-answer dictionary
+  member and that the answer is eligible from pull two onward. New dictionary words
   must be real, kid-safe Malayalam — the build throws if one isn't exactly
   5 keyboard aksharams.
 - The hint is a `.drum-hint` drawer under the drum. It briefly opens on load,

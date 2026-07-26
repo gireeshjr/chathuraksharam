@@ -5,12 +5,14 @@ import posthog from "posthog-js";
 
 type FeedbackFormProps = {
   category: string;
+  label: string;
   language: string;
   puzzle: number;
 };
 
 export default function FeedbackForm({
   category,
+  label,
   language,
   puzzle,
 }: FeedbackFormProps) {
@@ -100,7 +102,7 @@ export default function FeedbackForm({
         type="button"
       >
         <span aria-hidden="true">✦</span>
-        Send feedback
+        {label}
         <span aria-hidden="true">{open ? "↑" : "↓"}</span>
       </button>
       {open ? (

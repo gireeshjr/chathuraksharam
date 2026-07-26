@@ -16,6 +16,16 @@ export type DrumRow = {
   phase: TilePhase;
 };
 
+type DrumCopy = {
+  emptyTile: string;
+  pending: string;
+  tileAbsent: string;
+  tileCorrect: string;
+  tilePresent: string;
+  viewGuess: string;
+  viewGuesses: string;
+};
+
 const FACE_ANGLE = 72; // 360 / 5 faces
 const RETURN_TO_CURRENT_MS = 3000;
 
@@ -84,6 +94,7 @@ function Tile({
   status,
   phase,
   index,
+  copy,
   soundFor,
   showSounds,
 }: {
@@ -91,17 +102,24 @@ function Tile({
   status: TileState;
   phase: TilePhase;
   index: number;
+  copy: DrumCopy;
   soundFor: (tile: string) => string;
   showSounds: boolean;
 }) {
   const revealed = phase === "settled";
   const sound = tile ? soundFor(tile) : "";
+  const statusLabel =
+    status === "correct"
+      ? copy.tileCorrect
+      : status === "present"
+        ? copy.tilePresent
+        : copy.tileAbsent;
   return (
     <div
       aria-label={
         tile
-          ? `${tile}, ${soundFor(tile)}, ${revealed ? status : "pending"}`
-          : "empty tile"
+          ? `${tile}, ${soundFor(tile)}, ${revealed ? statusLabel : copy.pending}`
+          : copy.emptyTile
       }
       className={`tile3d ${phase} ${tile ? "has-tile" : ""}`}
       style={{ "--i": index } as CSSProperties}
@@ -132,6 +150,7 @@ export default function WordDrum({
   activeRow,
   currentAttempt,
   attemptLabel,
+  copy,
   winWaveRow,
   shakeRow,
   soundFor,
@@ -141,6 +160,7 @@ export default function WordDrum({
   activeRow: number;
   currentAttempt: number;
   attemptLabel: string;
+  copy: DrumCopy;
   winWaveRow: number | null;
   shakeRow: boolean;
   soundFor: (tile: string) => string;
@@ -208,6 +228,7 @@ export default function WordDrum({
                     index={tileIndex}
                     key={`${rowIndex}-${tileIndex}`}
                     phase={row.phase}
+                    copy={copy}
                     showSounds={showSounds}
                     soundFor={soundFor}
                     status={row.result[tileIndex]}
@@ -219,12 +240,12 @@ export default function WordDrum({
           })}
         </div>
       </div>
-      <div aria-label="View a guess" className="drum-dots" role="group">
+      <div aria-label={copy.viewGuesses} className="drum-dots" role="group">
         {rows.map((row, index) => {
           const played = row.phase === "settled";
           return (
             <button
-              aria-label={`View guess ${index + 1}`}
+              aria-label={copy.viewGuess.replace("{number}", String(index + 1))}
               aria-pressed={viewIndex === index}
               className={`drum-dot ${played ? "played" : ""} ${
                 index === currentAttempt ? "current" : ""
