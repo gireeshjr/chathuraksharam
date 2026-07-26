@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* RIT Meera New shapes standard Unicode Malayalam into compact traditional
+   conjuncts. Its Malayalam-only range lets the existing Latin/Devanagari
+   fonts continue to render every other language. */
+@font-face {
+  font-display: swap;
+  font-family: "RIT Meera New";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/RIT-MeeraNew.woff2") format("woff2");
+  unicode-range: U+0D00-0D7F;
+}
+
 /* ------------------------------------------------------------------ */
 /* Kerala-night design tokens                                          */
 /* ------------------------------------------------------------------ */
@@ -52,7 +64,7 @@ body {
     radial-gradient(700px 500px at 50% 45%, rgba(224, 170, 75, 0.05), transparent 65%),
     linear-gradient(180deg, #0a1a13, #050d09 70%, #040a07);
   color: var(--ink);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: "RIT Meera New", var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 .game-main {
@@ -138,7 +150,7 @@ button {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -153,7 +165,7 @@ button {
 
 .game-title-ml {
   color: var(--ink-dim);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -439,7 +451,7 @@ button {
 
 .feedback-heading strong {
   color: var(--gold-bright);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 1rem;
 }
 
@@ -593,7 +605,7 @@ button {
 
 .panel-heading {
   color: var(--ink);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 1.12rem;
   font-weight: 700;
 }
@@ -673,15 +685,15 @@ button {
 
 .puzzle-clue.arriving,
 .game-goal.arriving {
-  animation: puzzle-content-arrive 620ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  animation: puzzle-content-arrive 760ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
 }
 
 .game-goal.arriving {
-  animation-delay: 90ms;
+  animation-delay: 800ms;
 }
 
 @keyframes puzzle-content-arrive {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -817,7 +829,7 @@ button {
   color: var(--ink);
   display: flex;
   flex-direction: column;
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: clamp(1.45rem, 7vw, 2.9rem);
   font-weight: 700;
   inset: 0;
@@ -1292,7 +1304,7 @@ button {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   gap: 1px;
@@ -1380,7 +1392,7 @@ button {
   color: var(--ink);
   display: flex;
   flex-direction: column;
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   gap: 2px;
@@ -1537,7 +1549,7 @@ button {
 
 .stat strong {
   color: var(--gold-bright);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 1.55rem;
   font-weight: 800;
   line-height: 1;
@@ -1601,7 +1613,7 @@ button {
 
 .lookup-item b {
   color: var(--gold-bright);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-size: 1.05rem;
   font-weight: 700;
   grid-row: 1 / span 2;
@@ -1659,7 +1671,7 @@ button {
 
 .result-title {
   color: var(--ink);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
   font-weight: 800;
 }
 
@@ -1674,7 +1686,7 @@ button {
 
 .result-meaning strong {
   color: var(--gold-bright);
-  font-family: var(--font-display), sans-serif;
+  font-family: "RIT Meera New", var(--font-display), sans-serif;
 }
 
 .result-countdown {
