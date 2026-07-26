@@ -174,7 +174,7 @@ button {
 }
 
 .game-chip {
-  background: var(--glass);
+  background: rgba(6, 20, 14, 0.92);
   border: 1px solid var(--glass-border);
   border-radius: 999px;
   color: var(--gold-bright);
@@ -188,7 +188,7 @@ button {
 
 .sound-toggle {
   align-items: center;
-  background: var(--glass);
+  background: rgba(6, 20, 14, 0.92);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   display: flex;
@@ -211,7 +211,7 @@ button {
 
 .stream-trigger {
   align-items: center;
-  background: var(--glass);
+  background: rgba(6, 20, 14, 0.92);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   display: grid;
@@ -993,7 +993,7 @@ button {
 }
 
 .btn-ghost {
-  background: var(--glass);
+  background: rgba(6, 20, 14, 0.92);
   border: 1px solid var(--glass-border-dim);
   border-radius: 12px;
   color: var(--ink);
@@ -1007,7 +1007,7 @@ button {
 }
 
 .btn-outline {
-  background: transparent;
+  background: rgba(6, 20, 14, 0.92);
   border: 1px solid var(--emerald);
   border-radius: 12px;
   color: var(--emerald);
@@ -1016,7 +1016,7 @@ button {
 }
 
 .btn-outline:hover {
-  background: rgba(31, 180, 125, 0.12);
+  background: rgba(12, 48, 34, 0.96);
   box-shadow: 0 0 18px rgba(31, 180, 125, 0.2);
 }
 
@@ -1154,7 +1154,7 @@ button {
 
 .machine-lock {
   align-items: center;
-  background: rgba(224, 170, 75, 0.16);
+  background: linear-gradient(180deg, rgba(54, 42, 19, 0.98), rgba(20, 18, 10, 0.98));
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   color: var(--gold-bright);
@@ -1171,9 +1171,9 @@ button {
 }
 
 .machine-lock .lock-icon { font-size: 1.15rem; }
-.machine-lock:hover:not(:disabled), .machine-lock:focus-visible { background: rgba(224, 170, 75, 0.28); border-color: var(--gold); outline: none; }
+.machine-lock:hover:not(:disabled), .machine-lock:focus-visible { background: linear-gradient(180deg, rgba(78, 59, 24, 0.99), rgba(31, 26, 12, 0.99)); border-color: var(--gold); outline: none; }
 .machine-lock:disabled { cursor: not-allowed; opacity: 0.45; }
-.machine-lock.locked { background: rgba(31, 180, 125, 0.2); border-color: var(--emerald); color: #8ff5cd; }
+.machine-lock.locked { background: linear-gradient(180deg, rgba(15, 69, 48, 0.98), rgba(6, 31, 21, 0.98)); border-color: var(--emerald); color: #8ff5cd; }
 .machine-lock-tip { bottom: calc(100% + 9px); }
 .machine-lock-tip::after { border-top: 6px solid var(--gold); bottom: -6px; }
 
@@ -1441,7 +1441,7 @@ button {
 
 .lever {
   align-items: center;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(180deg, rgba(18, 43, 31, 0.98), rgba(6, 19, 13, 0.98));
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   cursor: pointer;
@@ -1697,6 +1697,35 @@ button {
 .result-countdown {
   color: var(--ink-faint);
   font-weight: 700;
+}
+
+/* Custom artwork can contain any luminance or texture. Give every control
+   and free-standing label a real surface instead of relying on backdrop
+   contrast from the image underneath. */
+.theme-custom .game-chip,
+.theme-custom .sound-toggle,
+.theme-custom .stream-trigger,
+.theme-custom .btn-ghost,
+.theme-custom .btn-outline,
+.theme-custom .community-link {
+  background: rgba(5, 18, 12, 0.96);
+  border-color: rgba(242, 205, 124, 0.58);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.48);
+}
+
+.theme-custom .game-goal,
+.theme-custom .puzzle-clue,
+.theme-custom .depth-panel {
+  background: linear-gradient(160deg, rgba(16, 40, 29, 0.97), rgba(5, 17, 11, 0.97));
+}
+
+.theme-custom .status-message,
+.theme-custom .attempt-status {
+  background: rgba(5, 18, 12, 0.9);
+  border-radius: 999px;
+  margin-inline: auto;
+  padding-inline: 12px;
+  width: fit-content;
 }
 
 /* ------------------------------------------------------------------ */
