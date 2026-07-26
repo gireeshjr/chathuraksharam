@@ -59,15 +59,20 @@ function FitSymbol({ tile }: { tile: string }) {
 function TileFace({
   tile,
   className,
+  showSound,
+  sound,
 }: {
   tile: string;
   className: string;
+  showSound: boolean;
+  sound: string;
 }) {
   return (
     <div className={`tile-face ${className}`}>
       {tile ? (
         <span className="tile-pop" key={tile}>
           <FitSymbol tile={tile} />
+          {showSound ? <span className="tile-sound">{sound}</span> : null}
         </span>
       ) : null}
     </div>
@@ -80,14 +85,17 @@ function Tile({
   phase,
   index,
   soundFor,
+  showSounds,
 }: {
   tile: string;
   status: TileState;
   phase: TilePhase;
   index: number;
   soundFor: (tile: string) => string;
+  showSounds: boolean;
 }) {
   const revealed = phase === "settled";
+  const sound = tile ? soundFor(tile) : "";
   return (
     <div
       aria-label={
@@ -99,10 +107,18 @@ function Tile({
       style={{ "--i": index } as CSSProperties}
     >
       <div className="tile3d-inner">
-        <TileFace className="tile-front" tile={tile} />
-        <div className={`tile-face tile-back ${status}`}>
-          {tile ? <FitSymbol tile={tile} /> : null}
-        </div>
+        <TileFace
+          className="tile-front"
+          showSound={showSounds}
+          sound={sound}
+          tile={tile}
+        />
+        <TileFace
+          className={`tile-back ${status}`}
+          showSound={showSounds}
+          sound={sound}
+          tile={tile}
+        />
       </div>
     </div>
   );
@@ -119,6 +135,7 @@ export default function WordDrum({
   winWaveRow,
   shakeRow,
   soundFor,
+  showSounds = false,
 }: {
   rows: DrumRow[];
   activeRow: number;
@@ -127,6 +144,7 @@ export default function WordDrum({
   winWaveRow: number | null;
   shakeRow: boolean;
   soundFor: (tile: string) => string;
+  showSounds?: boolean;
 }) {
   const [viewIndex, setViewIndex] = useState(activeRow);
   const returnTimer = useRef<number | null>(null);
@@ -190,6 +208,7 @@ export default function WordDrum({
                     index={tileIndex}
                     key={`${rowIndex}-${tileIndex}`}
                     phase={row.phase}
+                    showSounds={showSounds}
                     soundFor={soundFor}
                     status={row.result[tileIndex]}
                     tile={tile}

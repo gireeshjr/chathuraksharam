@@ -150,8 +150,10 @@ function LockIcon({ open }: { open: boolean }) {
 // change from reconciling thousands of spans, which visibly froze mobile.
 const ReelStripItems = memo(function ReelStripItems({
   reelSeq,
+  showSounds,
 }: {
   reelSeq: KeyDef[];
+  showSounds: boolean;
 }) {
   return (
     <>
@@ -163,6 +165,9 @@ const ReelStripItems = memo(function ReelStripItems({
             key={`${copy}-${idx}`}
           >
             <span className="reel-symbol">{item.ml}</span>
+            {showSounds ? (
+              <span className="reel-sound">{item.sound}</span>
+            ) : null}
           </span>
         )),
       )}
@@ -855,7 +860,10 @@ export default function SlotMachine({
                           } as CSSProperties
                         }
                       >
-                        <ReelStripItems reelSeq={reelSeq} />
+                        <ReelStripItems
+                          reelSeq={reelSeq}
+                          showSounds={Boolean(showPickerSounds)}
+                        />
                       </div>
                       <div aria-hidden="true" className="reel-shade" />
                     </div>

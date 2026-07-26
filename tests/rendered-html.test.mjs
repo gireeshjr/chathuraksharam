@@ -30,8 +30,8 @@ test("server-renders the default English game", async () => {
 
     const html = await response.text();
     assert.match(html, /<html dir="ltr" lang="en"/i);
-    assert.match(html, /<title>Chathuraksharam — Word Square<\/title>/i);
-    assert.match(html, /Chathuraksharam — Word Square/);
+    assert.match(html, /<title>Word Roller — Chathuraksharam<\/title>/i);
+    assert.match(html, /Word Roller — Chathuraksharam/);
     assert.match(html, /English/);
     assert.match(html, /Everyday/);
     assert.match(html, /class="stream-trigger/);

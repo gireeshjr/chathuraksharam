@@ -393,7 +393,10 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.lang = pack.locale;
     document.documentElement.dir = pack.direction;
-    document.title = pack.title;
+    const titleFrame = window.requestAnimationFrame(() => {
+      document.title = pack.title;
+    });
+    return () => window.cancelAnimationFrame(titleFrame);
   }, [pack]);
   const [settledCount, setSettledCount] = useState(0);
   const [revealing, setRevealing] = useState(false);
@@ -1027,6 +1030,7 @@ export default function Home() {
                 key={`drum-${pack.id}-${category.id}-${puzzleId}`}
                 rows={drumRows}
                 shakeRow={shakeRow}
+                showSounds={pack.id === "ml"}
                 soundFor={getSound}
                 winWaveRow={winWaveRow}
               />

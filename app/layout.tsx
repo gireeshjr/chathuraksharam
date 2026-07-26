@@ -20,7 +20,7 @@ const balooChettan = Baloo_Chettan_2({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.chathuraksharam.com"),
-  title: "Chathuraksharam — Word Square",
+  title: "Word Roller — Chathuraksharam",
   description:
     "Spin, lock, and solve word puzzles across languages and categories.",
   icons: {
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
     shortcut: "/favicon.svg",
   },
   openGraph: {
-    title: "Chathuraksharam — Word Square",
+    title: "Word Roller — Chathuraksharam",
     description:
       "A multilingual word game with endless category-based puzzle streams.",
     images: ["/og.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Chathuraksharam — Word Square",
+    title: "Word Roller — Chathuraksharam",
     description:
       "A multilingual word game with endless category-based puzzle streams.",
     images: ["/og.png"],
