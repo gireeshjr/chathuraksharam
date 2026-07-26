@@ -40,8 +40,8 @@ test("server-renders the default English game", async () => {
     assert.match(html, /Pull the lever/);
     assert.match(html, /Today(?:'|&#x27;)s clue/);
     assert.ok(
-      html.indexOf("puzzle-clue") < html.indexOf("game-goal"),
-      "the clue should render before the gameplay goal",
+      html.indexOf("game-goal") < html.indexOf("puzzle-clue"),
+      "the gameplay goal should render before the clue",
     );
     assert.match(html, /#<!-- -->1/);
     assert.match(html, /A fruit that can be red, green, or gold/);

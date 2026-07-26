@@ -906,6 +906,13 @@ export default function Home() {
               aria-label={`${pack.name} ${category.label} word puzzle`}
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
+              <aside
+                className="game-goal arriving"
+                key={`goal-${pack.id}-${category.id}-${puzzleId}`}
+              >
+                <span aria-hidden="true">◎</span>
+                <p><strong>{pack.goal.label}:</strong> {pack.goal.text}</p>
+              </aside>
               <section
                 aria-labelledby="puzzle-clue-label"
                 className="puzzle-clue arriving"
@@ -914,13 +921,6 @@ export default function Home() {
                 <strong id="puzzle-clue-label">{pack.hintLabel}</strong>
                 <p>{answer.clue}</p>
               </section>
-              <aside
-                className="game-goal arriving"
-                key={`goal-${pack.id}-${category.id}-${puzzleId}`}
-              >
-                <span aria-hidden="true">◎</span>
-                <p><strong>{pack.goal.label}:</strong> {pack.goal.text}</p>
-              </aside>
               <WordDrum
                 activeRow={activeRow}
                 attemptLabel={pack.attemptLabel}
