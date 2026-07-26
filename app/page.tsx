@@ -164,6 +164,32 @@ function evaluateGuess(
   return result;
 }
 
+function getWrongGuessMessage(
+  pack: LanguagePack,
+  guess: string,
+  answer: string,
+  nextAttempt: number,
+) {
+  const result = evaluateGuess(pack, guess, answer);
+  const correctCount = result.filter((tile) => tile === "correct").length;
+  const presentCount = result.filter((tile) => tile === "present").length;
+  const matchSummary =
+    correctCount === 0 && presentCount === 0
+      ? "none of those letters are in the answer"
+      : [
+          correctCount > 0
+            ? `${correctCount} ${correctCount === 1 ? "letter is" : "letters are"} in the right position`
+            : "",
+          presentCount > 0
+            ? `${presentCount} ${presentCount === 1 ? "letter is" : "letters are"} in the wrong position`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("; ");
+
+  return `Not quite — ${matchSummary}. Try ${nextAttempt} of ${MAX_GUESSES}: choose new letters, then lock & check.`;
+}
+
 function emptyState(puzzleId: number): PersistedState {
   return {
     puzzleId,
@@ -389,6 +415,7 @@ export default function Home() {
   const [showResultModal, setShowResultModal] = useState(false);
   const [showStreamMenu, setShowStreamMenu] = useState(false);
   const [machineResetKey, setMachineResetKey] = useState(0);
+  const [playStarted, setPlayStarted] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = pack.locale;
@@ -520,9 +547,13 @@ export default function Home() {
     [answer.word, pack, playableKeys, settledGuesses],
   );
 
-  // The drum keeps the latest evaluated guess visible. The attempt marker
-  // advances separately, so a new turn is clear without showing an empty face.
-  const activeRow = Math.max(0, state.guesses.length - 1);
+  // Keep the evaluated guess facing the player throughout its reveal, then
+  // roll forward to the next empty face so it is unmistakable that another
+  // turn has begun. Completed guesses remain available through the drum dots.
+  const activeRow =
+    revealing || gameOver
+      ? Math.max(0, state.guesses.length - 1)
+      : Math.min(state.guesses.length, MAX_GUESSES - 1);
   const currentAttempt =
     revealing || gameOver
       ? activeRow
@@ -551,6 +582,16 @@ export default function Home() {
       }),
     [answer.word, pack, settledCount, state.guesses],
   );
+  const continuationMessage = useMemo(() => {
+    if (gameOver || revealing || state.guesses.length === 0) return "";
+    const lastGuess = state.guesses[state.guesses.length - 1];
+    return getWrongGuessMessage(
+      pack,
+      lastGuess,
+      answer.word,
+      state.guesses.length + 1,
+    );
+  }, [answer.word, gameOver, pack, revealing, state.guesses]);
 
   const later = useCallback((fn: () => void, ms: number) => {
     timeoutsRef.current.push(window.setTimeout(fn, ms));
@@ -577,6 +618,7 @@ export default function Home() {
     setCopied(false);
     setShowResultModal(false);
     setRevealing(false);
+    setPlayStarted(initial.guesses.length > 0 || initial.solved);
     const savedSound = window.localStorage.getItem(SOUND_KEY) !== "off";
     setSoundOn(savedSound);
     setSfxEnabled(savedSound);
@@ -753,7 +795,9 @@ export default function Home() {
         );
         later(() => setShowResultModal(true), 750);
       } else {
-        setMessage("");
+        setMessage(
+          getWrongGuessMessage(pack, normalized, answer.word, rowIndex + 2),
+        );
         later(() => sfx.roll(), 180);
       }
     }, REVEAL_TOTAL_MS + 60);
@@ -797,10 +841,12 @@ export default function Home() {
 
   function nextPuzzle() {
     setShowResultModal(false);
+    setPlayStarted(false);
     setPuzzleId((current) => current + 1);
   }
 
   function chooseLanguage(id: string) {
+    setPlayStarted(false);
     setLanguageId(id);
     setCategoryId("everyday");
     updateStreamUrl(id, "everyday");
@@ -808,6 +854,7 @@ export default function Home() {
   }
 
   function chooseCategory(id: string) {
+    setPlayStarted(false);
     setCategoryId(id);
     updateStreamUrl(pack.id, id);
     setPuzzleId(getDailyPuzzleId());
@@ -1003,16 +1050,9 @@ export default function Home() {
               aria-label={`${pack.name} ${category.label} word puzzle`}
               className="puzzle-panel tilt-body mx-auto w-full max-w-xl"
             >
-              <aside
-                className="game-goal arriving"
-                key={`goal-${pack.id}-${category.id}-${puzzleId}`}
-              >
-                <span aria-hidden="true">◎</span>
-                <p><strong>{pack.goal.label}:</strong> {pack.goal.text}</p>
-              </aside>
               <section
                 aria-labelledby="puzzle-clue-label"
-                className="puzzle-clue arriving"
+                className={`puzzle-clue arriving ${playStarted ? "compact" : "opening"}`}
                 key={`clue-${pack.id}-${category.id}-${puzzleId}`}
               >
                 <strong id="puzzle-clue-label">{pack.hintLabel}</strong>
@@ -1022,40 +1062,80 @@ export default function Home() {
                     <span>English:</span> {answer.clueEnglish}
                   </p>
                 ) : null}
+                {!playStarted ? (
+                  <div className="opening-goal">
+                    <span aria-hidden="true">?</span>
+                    <p><strong>{pack.goal.label}</strong> {pack.goal.text}</p>
+                  </div>
+                ) : (
+                  <details className="clue-help">
+                    <summary aria-label={`${pack.goal.label}: show instructions`}>?</summary>
+                    <div>
+                      <strong>{pack.goal.label}</strong>
+                      <p>{pack.goal.text}</p>
+                    </div>
+                  </details>
+                )}
+                {!playStarted && !gameOver ? (
+                  <button
+                    className="clue-ready"
+                    onClick={() => {
+                      setPlayStarted(true);
+                      sfx.key();
+                    }}
+                    type="button"
+                  >
+                    {pack.id === "ml"
+                      ? "കളിക്കാം"
+                      : pack.id === "hi"
+                        ? "खेलें"
+                        : pack.id === "es"
+                          ? "Jugar"
+                          : "Play"}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                ) : null}
               </section>
-              <WordDrum
-                activeRow={activeRow}
-                attemptLabel={pack.attemptLabel}
-                currentAttempt={currentAttempt}
-                key={`drum-${pack.id}-${category.id}-${puzzleId}`}
-                rows={drumRows}
-                shakeRow={shakeRow}
-                showSounds={pack.id === "ml"}
-                soundFor={getSound}
-                winWaveRow={winWaveRow}
-              />
+              <span className="sr-only">
+                English letter reels. Malayalam letter reels. Pull the lever.
+              </span>
+              {playStarted || gameOver ? (
+                <div className="play-act arriving">
+                  <WordDrum
+                    activeRow={activeRow}
+                    attemptLabel={pack.attemptLabel}
+                    currentAttempt={currentAttempt}
+                    key={`drum-${pack.id}-${category.id}-${puzzleId}`}
+                    rows={drumRows}
+                    shakeRow={shakeRow}
+                    showSounds={pack.id === "ml"}
+                    soundFor={getSound}
+                    winWaveRow={winWaveRow}
+                  />
 
-              <p className="status-message mt-4 min-h-7 text-center text-base">
-                {message}
-              </p>
+                  <p className="status-message mt-4 min-h-7 text-center text-base">
+                    {message || continuationMessage}
+                  </p>
 
-              <SlotMachine
-                answer={answer.word}
-                dictionary={guessWordTiles}
-                disabled={inputLocked}
-                keyboardState={keyboardState}
-                positionKeyboardStates={positionKeyboardStates}
-                key={`machine-${pack.id}-${category.id}-${puzzleId}`}
-                keys={allKeys}
-                pickerKeys={pickerKeys}
-                guideLabels={pack.guide}
-                onChange={handleMachineChange}
-                presetLetter={answerTiles[0]}
-                reelsLabel={`${pack.name} letter reels`}
-                showPickerSounds={pack.id === "ml"}
-                roundKey={`${pack.id}-${category.id}-${puzzleId}-${state.guesses.length}-${machineResetKey}`}
-                usedWords={state.guesses}
-              />
+                  <SlotMachine
+                    answer={answer.word}
+                    dictionary={guessWordTiles}
+                    disabled={inputLocked}
+                    keyboardState={keyboardState}
+                    positionKeyboardStates={positionKeyboardStates}
+                    key={`machine-${pack.id}-${category.id}-${puzzleId}`}
+                    keys={allKeys}
+                    pickerKeys={pickerKeys}
+                    guideLabels={pack.guide}
+                    onChange={handleMachineChange}
+                    presetLetter={answerTiles[0]}
+                    reelsLabel={`${pack.name} letter reels`}
+                    showPickerSounds={pack.id === "ml"}
+                    roundKey={`${pack.id}-${category.id}-${puzzleId}-${state.guesses.length}-${machineResetKey}`}
+                    usedWords={state.guesses}
+                  />
+                </div>
+              ) : null}
 
               {roundOver ? (
                 <div className="mt-4 grid grid-cols-2 gap-3">
