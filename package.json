@@ -16,6 +16,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.23",
     "next": "16.2.6",
     "posthog-js": "^1.399.3",
     "react": "19.2.6",

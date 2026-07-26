@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import posthog from "posthog-js";
+import * as Dialog from "@radix-ui/react-dialog";
 import FeedbackForm from "./components/FeedbackForm";
 import SlotMachine, { MachineEvent } from "./components/SlotMachine";
 import WordDrum, { DrumRow } from "./components/WordDrum";
@@ -773,6 +774,16 @@ export default function Home() {
     }
   }
 
+  function shareToWhatsApp() {
+    const text = getShareText(pack, category.id, category.label, state, answer);
+    posthog.capture("result_shared", { method: "whatsapp", puzzle_id: puzzleId });
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(text)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  }
+
   function trackWhatsAppChannel() {
     posthog.capture("whatsapp_channel_clicked", {
       category: category.id,
@@ -820,20 +831,19 @@ export default function Home() {
           ))}
         </div>
       ) : null}
-      {showResultModal ? (
-        <div
-          aria-labelledby="result-title"
-          aria-modal="true"
-          className="modal-overlay fixed inset-0 z-30 grid place-items-center p-5"
-          role="dialog"
-        >
-          <div className="result-card w-full max-w-md p-6">
+      <Dialog.Root open={showResultModal} onOpenChange={setShowResultModal}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="modal-overlay fixed inset-0 z-30" />
+          <Dialog.Content className="fixed inset-0 z-30 grid place-items-center p-5">
+            <div className="result-card w-full max-w-md p-6">
             <p className="result-eyebrow">
               {pack.nativeName} · {category.icon} {category.label} · Round {puzzleId + 1}
             </p>
-            <h2 className="result-title mt-2 text-3xl" id="result-title">
-              {state.solved ? "You got it!" : "Puzzle complete"}
-            </h2>
+            <Dialog.Title asChild>
+              <h2 className="result-title mt-2 text-3xl">
+                {state.solved ? "You got it!" : "Puzzle complete"}
+              </h2>
+            </Dialog.Title>
             <p className="result-score mt-2 text-lg">
               {state.solved ? `${state.guesses.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`} · 🔥 {state.streak}
             </p>
@@ -846,9 +856,11 @@ export default function Home() {
                 </p>
               ))}
             </div>
-            <p className="result-meaning mt-3 text-base leading-7">
-              <strong>{answer.word}</strong> ({answer.pronunciation}) means “{answer.meaning}”.
-            </p>
+            <Dialog.Description asChild>
+              <p className="result-meaning mt-3 text-base leading-7">
+                <strong>{answer.word}</strong> ({answer.pronunciation}) means “{answer.meaning}”.
+              </p>
+            </Dialog.Description>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 className="btn-ghost px-5 py-3"
@@ -859,12 +871,19 @@ export default function Home() {
               </button>
               <button
                 className="btn-primary px-5 py-3"
-                onClick={shareResult}
+                onClick={shareToWhatsApp}
                 type="button"
               >
-                {copied ? "Copied" : "Share result"}
+                WhatsApp
               </button>
             </div>
+            <button
+              className="btn-outline mt-3 block w-full px-5 py-3 text-center"
+              onClick={shareResult}
+              type="button"
+            >
+              {copied ? "Copied" : "More share options"}
+            </button>
             <button
               className="btn-outline mt-3 block w-full px-5 py-3 text-center"
               onClick={nextPuzzle}
@@ -872,9 +891,10 @@ export default function Home() {
             >
               Next {category.icon} {category.label} puzzle →
             </button>
-          </div>
-        </div>
-      ) : null}
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
       <section className="site-shell mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-8 lg:px-10">
         <header className="game-header flex items-center justify-between gap-3 pb-3">
           <div className="title-block flex items-center gap-3">
