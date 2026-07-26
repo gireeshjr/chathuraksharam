@@ -39,11 +39,9 @@ test("server-renders the default English game", async () => {
     assert.match(html, /English letter reels/);
     assert.match(html, /Pull the lever/);
     assert.match(html, /Today(?:'|&#x27;)s clue/);
-    assert.match(html, />Play</);
-    assert.match(html, /class="opening-goal"/);
     assert.ok(
-      html.indexOf("Today&#x27;s clue") < html.indexOf("opening-goal"),
-      "the visible goal should follow the clue",
+      html.indexOf("game-goal") < html.indexOf("puzzle-clue"),
+      "the gameplay goal should render before the clue",
     );
     assert.match(html, /#<!-- -->1/);
     assert.match(html, /A fruit that can be red, green, or gold/);

@@ -634,12 +634,7 @@ export default function SlotMachine({
 
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as HTMLElement;
-      // Keep the picker mounted through the confirmation button's full
-      // pointer sequence. Removing it on pointerdown shifts the layout and
-      // causes the subsequent click to miss the button.
-      if (!target.closest(".picker-pop, .reel-dial, .machine-lock")) {
-        closePicker(false);
-      }
+      if (!target.closest(".picker-pop, .reel-dial")) closePicker(false);
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -793,20 +788,6 @@ export default function SlotMachine({
       ref={machineRef}
       role="group"
     >
-      <div className="machine-lock-wrap">
-        <button
-          aria-label={allLocked ? "Checking the selected word" : "Lock all five dials and check the word"}
-          aria-pressed={allLocked}
-          className={`machine-lock ${allLocked ? "locked" : ""} ${!interacted ? "waiting" : ""} ${guideStep === "lock" ? "coach-target" : ""}`}
-          disabled={disabled || spinning || allLocked || !interacted}
-          onClick={submitAllLocks}
-          type="button"
-        >
-          <LockIcon open={false} />
-          {allLocked ? "Checking…" : interacted ? "Lock all & check" : guideLabels.pick}
-        </button>
-        {guideStep === "lock" ? <span className="coach-tip machine-lock-tip">{guideLabels.lock}</span> : null}
-      </div>
       <div className="machine-body">
         <div className="reel-bank">
           {positions.map((position, i) => {
@@ -914,6 +895,21 @@ export default function SlotMachine({
           <span className="lever-label">PULL</span>
         </button>
         <span className="sr-only">Press Space to pull the lever.</span>
+      </div>
+
+      <div className="machine-lock-wrap">
+        <button
+          aria-label={allLocked ? "Checking the selected word" : "Lock all five dials and check the word"}
+          aria-pressed={allLocked}
+          className={`machine-lock ${allLocked ? "locked" : ""} ${guideStep === "lock" ? "coach-target" : ""}`}
+          disabled={disabled || spinning || allLocked}
+          onClick={submitAllLocks}
+          type="button"
+        >
+          <LockIcon open={false} />
+          {allLocked ? "Checking…" : "Lock all & check"}
+        </button>
+        {guideStep === "lock" ? <span className="coach-tip machine-lock-tip">{guideLabels.lock}</span> : null}
       </div>
 
       {/* Inline callout: pops down under the reels with a caret pointing
