@@ -9,6 +9,7 @@ export type Puzzle = {
   pronunciation: string;
   meaning: string;
   clue: string;
+  clueEnglish?: string;
 };
 export type Category = {
   id: string;

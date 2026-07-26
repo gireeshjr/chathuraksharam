@@ -834,8 +834,8 @@ export default function Home() {
       <Dialog.Root open={showResultModal} onOpenChange={setShowResultModal}>
         <Dialog.Portal>
           <Dialog.Overlay className="modal-overlay fixed inset-0 z-30" />
-          <Dialog.Content className="fixed inset-0 z-30 grid place-items-center p-5">
-            <div className="result-card w-full max-w-md p-6">
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-30 w-[calc(100%-2.5rem)] max-w-md -translate-x-1/2 -translate-y-1/2">
+            <div className="result-card w-full p-6">
             <p className="result-eyebrow">
               {pack.nativeName} · {category.icon} {category.label} · Round {puzzleId + 1}
             </p>
@@ -847,21 +847,32 @@ export default function Home() {
             <p className="result-score mt-2 text-lg">
               {state.solved ? `${state.guesses.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`} · 🔥 {state.streak}
             </p>
-            <div aria-label="Spoiler-free result" className="mt-4 space-y-1 text-xl leading-none">
-              {state.guesses.map((guess, index) => (
-                <p key={`${guess}-${index}`}>
-                  {evaluateGuess(pack, guess, answer.word)
-                    .map((tile) => tile === "correct" ? "🟩" : tile === "present" ? "🟨" : "⬛")
-                    .join("")}
-                </p>
-              ))}
-            </div>
-            <Dialog.Description asChild>
-              <p className="result-meaning mt-3 text-base leading-7">
-                <strong>{answer.word}</strong> ({answer.pronunciation}) means “{answer.meaning}”.
+            <div className="result-answer-reveal mt-4">
+              <p className="result-section-label">
+                {state.solved ? "Answer confirmed" : "Answer reveal"}
               </p>
-            </Dialog.Description>
-            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Dialog.Description asChild>
+                <p className="result-meaning text-base leading-7">
+                  <strong>{answer.word}</strong> ({answer.pronunciation}) means “{answer.meaning}”.
+                </p>
+              </Dialog.Description>
+            </div>
+            <div className="result-share-preview mt-3">
+              <p className="result-section-label">What you’ll share</p>
+              <p className="result-share-note">
+                Grid, score, streak, and game link. The answer and clue stay private.
+              </p>
+              <div aria-label="Spoiler-free result" className="mt-2 space-y-1 text-xl leading-none">
+                {state.guesses.map((guess, index) => (
+                  <p key={`${guess}-${index}`}>
+                    {evaluateGuess(pack, guess, answer.word)
+                      .map((tile) => tile === "correct" ? "🟩" : tile === "present" ? "🟨" : "⬛")
+                      .join("")}
+                  </p>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 className="btn-ghost px-5 py-3"
                 onClick={() => setShowResultModal(false)}
@@ -1003,6 +1014,11 @@ export default function Home() {
               >
                 <strong id="puzzle-clue-label">{pack.hintLabel}</strong>
                 <p>{answer.clue}</p>
+                {answer.clueEnglish ? (
+                  <p className="clue-english" lang="en">
+                    <span>English:</span> {answer.clueEnglish}
+                  </p>
+                ) : null}
               </section>
               <WordDrum
                 activeRow={activeRow}
@@ -1032,6 +1048,7 @@ export default function Home() {
                 onChange={handleMachineChange}
                 presetLetter={answerTiles[0]}
                 reelsLabel={`${pack.name} letter reels`}
+                showPickerSounds={pack.id === "ml"}
                 roundKey={`${pack.id}-${category.id}-${puzzleId}-${state.guesses.length}-${machineResetKey}`}
                 usedWords={state.guesses}
               />

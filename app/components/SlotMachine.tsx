@@ -183,6 +183,7 @@ export default function SlotMachine({
   answer,
   guideLabels,
   reelsLabel,
+  showPickerSounds,
   onChange,
 }: {
   keys: ReadonlyArray<KeyDef>;
@@ -203,6 +204,8 @@ export default function SlotMachine({
   answer: string;
   guideLabels: { lock: string; pick: string };
   reelsLabel: string;
+  /** Show Latin sound guides beneath non-Latin picker symbols. */
+  showPickerSounds?: boolean;
   onChange: (letters: string[], locked: boolean[], event: MachineEvent) => void;
 }) {
   const reelSeq = useMemo(() => {
@@ -506,7 +509,11 @@ export default function SlotMachine({
     return () => window.removeEventListener("resize", position);
   }, [pickerReel]);
 
-  function pickLetter(letter: string, advance = true) {
+  function pickLetter(
+    letter: string,
+    advance = true,
+    advanceImmediately = false,
+  ) {
     const index = pickerReel;
     if (index === null || disabled || spinning || locked[index]) return;
     const target = reelSeq.findIndex((key) => key.ml === letter);
@@ -515,6 +522,9 @@ export default function SlotMachine({
     setInteracted(true);
     sfx.tick();
     buzz(6);
+    if (advance && advanceImmediately) {
+      setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+    }
 
     // Snap along the shortest path so the reel visibly rolls to the pick.
     const current = Math.round(positions[index]);
@@ -523,7 +533,9 @@ export default function SlotMachine({
     if (delta > seqLength / 2) delta -= seqLength;
     if (delta < -seqLength / 2) delta += seqLength;
     if (delta === 0) {
-      if (advance) setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+      if (advance && !advanceImmediately) {
+        setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+      }
       return;
     }
 
@@ -539,7 +551,9 @@ export default function SlotMachine({
         return done;
       });
       onChange(next.map((p) => letterAt(p).ml), locked, "dial");
-      if (advance) setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+      if (advance && !advanceImmediately) {
+        setPickerReel(index < REEL_COUNT - 1 ? index + 1 : null);
+      }
     }, 170);
   }
 
@@ -590,15 +604,25 @@ export default function SlotMachine({
 
       if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
         const typed = event.key.toLocaleLowerCase();
-        const matches = pickerKeys.filter(
+        const exactMatches = pickerKeys.filter(
           (key) =>
             key.ml.toLocaleLowerCase() === typed ||
-            key.sound.toLocaleLowerCase().startsWith(typed),
+            key.sound.toLocaleLowerCase() === typed,
         );
+        const matches = exactMatches.length > 0
+          ? exactMatches
+          : pickerKeys.filter((key) =>
+              key.sound.toLocaleLowerCase().startsWith(typed),
+            );
         if (matches.length > 0) {
           event.preventDefault();
           const currentMatch = matches.findIndex((key) => key.ml === activeLetter);
-          pickLetter(matches[(currentMatch + 1) % matches.length].ml, false);
+          const unambiguous = matches.length === 1;
+          pickLetter(
+            matches[(currentMatch + 1) % matches.length].ml,
+            unambiguous,
+            unambiguous,
+          );
         }
       }
     };
@@ -925,6 +949,9 @@ export default function SlotMachine({
                   type="button"
                 >
                   <span className="picker-symbol">{key.ml}</span>
+                  {showPickerSounds ? (
+                    <span className="picker-sound">{key.sound}</span>
+                  ) : null}
                 </button>
               );
             })}
