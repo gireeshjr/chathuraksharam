@@ -15,6 +15,8 @@ export type Category = {
   id: string;
   label: string;
   icon: string;
+  /** Keeps an expanded puzzle list aligned with its existing daily rotation. */
+  puzzleOffset?: number;
   hidden?: boolean;
   expiresAt?: string;
   puzzles: Puzzle[];

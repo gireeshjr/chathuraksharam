@@ -364,7 +364,11 @@ export default function Home() {
       pack.categories[0],
     [categoryId, customCategory, pack],
   );
-  const answer = category.puzzles[puzzleId % category.puzzles.length];
+  const answer =
+    category.puzzles[
+      (puzzleId + (dailyReady ? (category.puzzleOffset ?? 0) : 0)) %
+        category.puzzles.length
+    ];
   const answerTiles = useMemo(() => splitWord(pack, answer.word), [answer.word, pack]);
   const playableKeys = useMemo(() => {
     if (!category.deriveKeysFromPuzzles) return pack.keys;

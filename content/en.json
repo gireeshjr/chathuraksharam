@@ -75,6 +75,7 @@
       "id": "everyday",
       "label": "Everyday",
       "icon": "☀️",
+      "puzzleOffset": 20,
       "puzzles": [
         { "word": "apple", "pronunciation": "apple", "meaning": "a crisp fruit", "clue": "A fruit that can be red, green, or gold." },
         { "word": "bread", "pronunciation": "bread", "meaning": "a baked staple", "clue": "A loaf sliced for toast or sandwiches." },
@@ -105,13 +106,24 @@
         { "word": "grass", "pronunciation": "grass", "meaning": "short green ground-covering plants", "clue": "Lawns and many fields are covered with this." },
         { "word": "trees", "pronunciation": "trees", "meaning": "tall woody plants", "clue": "These plants have trunks, branches, and leaves." },
         { "word": "roads", "pronunciation": "roads", "meaning": "routes for vehicles", "clue": "Cars and buses travel along these." },
-        { "word": "sleep", "pronunciation": "sleep", "meaning": "a natural state of rest", "clue": "Most people do this for several hours at night." }
+        { "word": "sleep", "pronunciation": "sleep", "meaning": "a natural state of rest", "clue": "Most people do this for several hours at night." },
+        { "word": "quilt", "pronunciation": "quilt", "meaning": "a warm stitched bed covering", "clue": "Layers of fabric are stitched together to make this cozy covering." },
+        { "word": "hinge", "pronunciation": "hinge", "meaning": "a joint that lets something swing", "clue": "A door turns on this small piece of hardware." },
+        { "word": "whisk", "pronunciation": "whisk", "meaning": "a wire tool for beating ingredients", "clue": "A cook uses this tool to beat eggs or mix a sauce." },
+        { "word": "crisp", "pronunciation": "crisp", "meaning": "firm, fresh, and pleasantly brittle", "clue": "A fresh apple or crunchy cracker may be described this way." },
+        { "word": "frost", "pronunciation": "frost", "meaning": "a thin layer of ice crystals", "clue": "This sparkling white coating can appear on cold mornings." },
+        { "word": "scent", "pronunciation": "scent", "meaning": "a distinctive smell", "clue": "Flowers and perfume release this into the air." },
+        { "word": "grout", "pronunciation": "grout", "meaning": "material filling spaces between tiles", "clue": "This hardens in the narrow lines between bathroom tiles." },
+        { "word": "ledge", "pronunciation": "ledge", "meaning": "a narrow horizontal shelf or edge", "clue": "A bird might perch on this narrow shelf outside a window." },
+        { "word": "flask", "pronunciation": "flask", "meaning": "a small container for liquid", "clue": "This narrow container may hold a drink or a laboratory mixture." },
+        { "word": "dough", "pronunciation": "dough", "meaning": "a soft mixture used for baking", "clue": "Flour and liquid are kneaded into this before bread is baked." }
       ]
     },
     {
       "id": "arts",
       "label": "Arts",
       "icon": "🎨",
+      "puzzleOffset": 20,
       "puzzles": [
         { "word": "music", "pronunciation": "music", "meaning": "organized sound", "clue": "Melody, harmony, and rhythm together." },
         { "word": "dance", "pronunciation": "dance", "meaning": "movement to rhythm", "clue": "An art made by moving the body." },
@@ -142,13 +154,24 @@
         { "word": "photo", "pronunciation": "photo", "meaning": "a photograph", "clue": "A camera captures this still image." },
         { "word": "easel", "pronunciation": "easel", "meaning": "a stand for an artist's canvas", "clue": "A painter rests a canvas on this support." },
         { "word": "masks", "pronunciation": "masks", "meaning": "coverings worn over the face", "clue": "Performers may wear these to become different characters." },
-        { "word": "cello", "pronunciation": "cello", "meaning": "a large bowed string instrument", "clue": "A seated musician holds this instrument upright to play it." }
+        { "word": "cello", "pronunciation": "cello", "meaning": "a large bowed string instrument", "clue": "A seated musician holds this instrument upright to play it." },
+        { "word": "motif", "pronunciation": "motif", "meaning": "a recurring artistic idea or design", "clue": "This repeated image, shape, or melody helps unify a work." },
+        { "word": "mural", "pronunciation": "mural", "meaning": "a painting made directly on a wall", "clue": "This large artwork may cover the side of a building." },
+        { "word": "prose", "pronunciation": "prose", "meaning": "ordinary written language without verse", "clue": "Most novels use this form of writing rather than poetry." },
+        { "word": "genre", "pronunciation": "genre", "meaning": "a category of artistic work", "clue": "Mystery, comedy, and fantasy are each this kind of classification." },
+        { "word": "tempo", "pronunciation": "tempo", "meaning": "the speed of a piece of music", "clue": "A conductor may signal musicians to play at a faster one." },
+        { "word": "etude", "pronunciation": "etude", "meaning": "a musical piece written for practice", "clue": "A musician studies this composition to master a particular skill." },
+        { "word": "serif", "pronunciation": "serif", "meaning": "a small finishing stroke on a letter", "clue": "This decorative stroke appears at the end of letters in some typefaces." },
+        { "word": "opera", "pronunciation": "opera", "meaning": "a drama performed mainly through singing", "clue": "Singers tell a theatrical story with an orchestra in this art form." },
+        { "word": "rhyme", "pronunciation": "rhyme", "meaning": "matching sounds at the ends of words", "clue": "Poets may pair words like light and night to create this." },
+        { "word": "cameo", "pronunciation": "cameo", "meaning": "a brief appearance or a carved portrait", "clue": "A famous performer may make this short, surprising appearance in a film." }
       ]
     },
     {
       "id": "sports",
       "label": "Sports",
       "icon": "🏅",
+      "puzzleOffset": 20,
       "puzzles": [
         { "word": "score", "pronunciation": "score", "meaning": "points earned", "clue": "The number that shows who is winning." },
         { "word": "coach", "pronunciation": "coach", "meaning": "a team trainer", "clue": "This person guides players from the sideline." },
@@ -179,7 +202,17 @@
         { "word": "catch", "pronunciation": "catch", "meaning": "to receive and hold a moving object", "clue": "Players use their hands or a glove to do this." },
         { "word": "pitch", "pronunciation": "pitch", "meaning": "a thrown ball or playing field", "clue": "In baseball it is thrown; in soccer it is played upon." },
         { "word": "games", "pronunciation": "games", "meaning": "organized contests", "clue": "Players follow rules and compete in these activities." },
-        { "word": "hoops", "pronunciation": "hoops", "meaning": "circular scoring rings", "clue": "Basketball players shoot the ball through these." }
+        { "word": "hoops", "pronunciation": "hoops", "meaning": "circular scoring rings", "clue": "Basketball players shoot the ball through these." },
+        { "word": "feint", "pronunciation": "feint", "meaning": "a deceptive movement", "clue": "A player pretends to move one way before quickly going another." },
+        { "word": "vault", "pronunciation": "vault", "meaning": "a gymnastic event or a leap", "clue": "A gymnast springs over this apparatus using the hands for support." },
+        { "word": "scrum", "pronunciation": "scrum", "meaning": "a packed formation in rugby", "clue": "Rugby players bind together in this formation to restart play." },
+        { "word": "parry", "pronunciation": "parry", "meaning": "to deflect an attack", "clue": "A fencer uses the blade to block an opponent's thrust this way." },
+        { "word": "bogey", "pronunciation": "bogey", "meaning": "one stroke over par in golf", "clue": "A golfer records this after taking one more stroke than expected." },
+        { "word": "deuce", "pronunciation": "deuce", "meaning": "a tied score of forty-all in tennis", "clue": "In tennis, this score means both players have reached forty." },
+        { "word": "wedge", "pronunciation": "wedge", "meaning": "a golf club for short, high shots", "clue": "A golfer may choose this club to lift the ball out of a bunker." },
+        { "word": "caddy", "pronunciation": "caddy", "meaning": "a person who carries a golfer's clubs", "clue": "This helper carries the bag and may advise a golfer." },
+        { "word": "rally", "pronunciation": "rally", "meaning": "a continuous exchange of shots", "clue": "In tennis, this continues while players keep returning the ball." },
+        { "word": "sabre", "pronunciation": "sabre", "meaning": "a light cutting sword used in fencing", "clue": "Fencers score with the edge or point of this bladed weapon." }
       ]
     }
   ],
