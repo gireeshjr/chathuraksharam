@@ -1182,7 +1182,6 @@ export default function Home() {
                 keyboardState={keyboardState}
                 positionKeyboardStates={positionKeyboardStates}
                 key={`machine-${pack.id}-${category.id}-${puzzleId}`}
-                keys={allKeys}
                 pickerKeys={pickerKeys}
                 guideLabels={pack.guide}
                 onChange={handleMachineChange}

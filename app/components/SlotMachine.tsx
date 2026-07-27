@@ -28,10 +28,6 @@ const REEL_COUNT = 5;
 // layer, and tall strips pushed mobile Safari into memory-pressure page
 // reloads mid-game.
 const STRIP_COPIES = 4;
-// Preferred deterministic pseudo-shuffle stride. The actual stride is
-// adjusted per language so it is coprime with that alphabet's size; otherwise
-// an alphabet such as Spanish's 33 entries would repeat only 3 letters.
-const PREFERRED_STRIDE = 11;
 const INITIAL_OFFSETS = [0, 7, 14, 21, 28];
 
 type MachineCopy = {
@@ -51,18 +47,6 @@ type MachineCopy = {
 
 function withNumber(template: string, number: number) {
   return template.replace("{number}", String(number));
-}
-
-function greatestCommonDivisor(a: number, b: number): number {
-  return b === 0 ? a : greatestCommonDivisor(b, a % b);
-}
-
-function getReelStride(length: number) {
-  if (length <= 1) return 1;
-
-  let stride = Math.min(PREFERRED_STRIDE, length - 1);
-  while (greatestCommonDivisor(stride, length) !== 1) stride -= 1;
-  return stride;
 }
 
 function spinWeight(state: TileState | undefined) {
@@ -193,7 +177,6 @@ const ReelStripItems = memo(function ReelStripItems({
 });
 
 export default function SlotMachine({
-  keys,
   pickerKeys,
   keyboardState,
   positionKeyboardStates,
@@ -210,8 +193,7 @@ export default function SlotMachine({
   showPickerSounds,
   onChange,
 }: {
-  keys: ReadonlyArray<KeyDef>;
-  /** Stable, language-natural order for the visible letter picker. */
+  /** Stable, language-natural order shared by the reels and letter picker. */
   pickerKeys: ReadonlyArray<KeyDef>;
   keyboardState: Map<string, TileState>;
   /** Letter knowledge scoped to each reel position. */
@@ -235,14 +217,10 @@ export default function SlotMachine({
   showPickerSounds?: boolean;
   onChange: (letters: string[], locked: boolean[], event: MachineEvent) => void;
 }) {
-  const reelSeq = useMemo(() => {
-    const stride = getReelStride(keys.length);
-    const seq: KeyDef[] = [];
-    for (let i = 0; i < keys.length; i += 1) {
-      seq.push(keys[(i * stride) % keys.length]);
-    }
-    return seq;
-  }, [keys]);
+  // Manual dialing follows the same natural alphabet order shown in the
+  // picker. Each reel starts at a different offset, but one swipe always
+  // advances to the adjacent visible picker letter, with wraparound.
+  const reelSeq = useMemo(() => [...pickerKeys], [pickerKeys]);
   const seqLength = reelSeq.length;
   const presetIndex = useMemo(
     () =>

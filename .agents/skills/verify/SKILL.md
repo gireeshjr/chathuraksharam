@@ -58,8 +58,10 @@ not by curling HTML.
   distinct from the gold locked style; tapping the targeted reel again
   is a no-op — it closes only via ✕, the round ending, or locking the
   last reel). Picking
-  snap-rolls the reel to that letter along the shortest path (REEL_SEQ =
-  allKeys[(i*11)%35]), advances the callout to the next reel after the snap,
+  snap-rolls the reel to that letter along the shortest path. The reel strip
+  uses the exact same language-natural order as the picker, so each manual
+  swipe moves predictably to an adjacent picker letter with wraparound. It
+  advances the callout to the next reel after the snap,
   and closes the callout after a pick on reel 5.
   Dragging the `.reel-dial` vertically still scrolls it with
   snap-to-letter. Locking is a separate global `.machine-lock` button;
